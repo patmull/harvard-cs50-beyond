@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link href="{% static 'custom-styles.css' %}" rel="stylesheet" >
+    </head>
+    <body>
+        {% if is_christmas_now is True %}
+            {% with is_christmas_now_true_text="Yes" %}
+                <h1>{{ is_christmas_now_true_text }}</h1>
+            {% endwith %}
+        {% else %}
+            {% with is_christmas_now_true_text="No" %}
+                <h1>{{ is_christmas_now_true_text }}</h1>
+            {% endwith %}
+        {% endif %}
+    </body>
+</html>
