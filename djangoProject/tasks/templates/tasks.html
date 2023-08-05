@@ -7,10 +7,7 @@
         <h2>Add task</h2>
         <form method="POST" action="{% url 'new_task' %}">
             {% csrf_token %}
-            <label>
-                <p>Task:</p>
-                <input type="text" name="task_name">
-            </label>
+            {{ new_item_form }}
             <input type="submit">
         </form>
         <h2>Your list</h2>

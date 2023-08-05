@@ -7,10 +7,7 @@
         <h2>Add shopping item</h2>
         <form method="POST" action="{% url 'add_new_shopping_item' %}">
             {% csrf_token %}
-            <label>
-                <p>Shopping item:</p>
-                <input type="text" name="shopping_item_name">
-            </label>
+            {{ new_item_form }}
             <input type="submit">
         </form>
         <h2>Your shopping list</h2>
