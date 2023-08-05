@@ -1,7 +1,7 @@
 {% extends "tasks-template/todo-list-app-main.html" %}
 
 {% block items %}
-    <form method="POST" action="{% url 'new_task' %}">
+    <form method="POST" action="{% url 'tasks:new_task' %}">
         {% csrf_token %}
         {{ new_item_form }}
         <input type="submit">

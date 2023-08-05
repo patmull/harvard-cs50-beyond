@@ -6,12 +6,15 @@
 </head>
 <body>
     <header>
-        <nav>
+        <nav> Our apps:
             <ul>
-                <li><a href="{% url 'index' %}">Hello App</a></li>
-                <!--
-                <li><a href="">Task App</a></li>
-                -->
+                <li><a href="{% url 'hello:index' %}">Hello App</a></li>
+                <li>TO-DO-LIST APP
+                    <ul>
+                        <li><a href="{% url 'tasks:index' %}">Task App</a></li>
+                        <li><a href="{% url 'tasks:shopping_lists' %}">Shopping lists app</a></li>
+                    </ul>
+                </li>
             </ul>
         </nav>
     </header>

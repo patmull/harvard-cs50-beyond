@@ -2,6 +2,7 @@ from django.urls import path
 
 from tasks import views
 
+app_name = 'tasks'
 urlpatterns = [
     path('', views.index, name='index'),
     path('shopping-lists', views.shopping_lists, name='shopping_lists'),
