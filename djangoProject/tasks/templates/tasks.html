@@ -1,27 +1,21 @@
-<!DOCTYPE html>
-<html lang="cs">
-    <header>
-    </header>
-    <body>
-        <h1>My tasks</h1>
-        <h2>Add task</h2>
-        <form method="POST" action="{% url 'new_task' %}">
-            {% csrf_token %}
-            {{ new_item_form }}
-            <input type="submit">
-        </form>
-        <h2>Your list</h2>
-        <ul>
-            {% for task in tasks %}
-                <li>{{ task }}</li>
-            {% endfor %}
-        </ul>
-        <h2>Your added preview...</h2>
-        <ul>
-            <li>{{ tasks.0 }}</li>
-            <li>{{ tasks.1 }}</li>
-            <li>...</li>
-        </ul>
+{% extends "tasks-template/todo-list-app-main.html" %}
 
-    </body>
-</html>
+{% block items %}
+    <form method="POST" action="{% url 'new_task' %}">
+        {% csrf_token %}
+        {{ new_item_form }}
+        <input type="submit">
+    </form>
+    <h2>Your list</h2>
+    <ul>
+        {% for task in tasks %}
+            <li>{{ task }}</li>
+        {% endfor %}
+    </ul>
+    <h2>Your added preview...</h2>
+    <ul>
+        <li>{{ tasks.0 }}</li>
+        <li>{{ tasks.1 }}</li>
+        <li>...</li>
+    </ul>
+{% endblock %}

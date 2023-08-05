@@ -1,21 +1,17 @@
-<!DOCTYPE html>
-<html lang="cs">
-    <header>
-    </header>
-    <body>
-        <h1>Shopping lists</h1>
-        <h2>Add shopping item</h2>
-        <form method="POST" action="{% url 'add_new_shopping_item' %}">
-            {% csrf_token %}
-            {{ new_item_form }}
-            <input type="submit">
-        </form>
-        <h2>Your shopping list</h2>
-        <ul>
-            {% for item in shopping_items %}
-                <li>{{ item }}</li>
-            {% endfor %}
-        </ul>
+{% extends "tasks-template/todo-list-app-main.html" %}
 
-    </body>
-</html>
+{% block items %}
+    <h2>Shopping lists</h2>
+    <h3>Add shopping item</h3>
+    <form method="POST" action="{% url 'add_new_shopping_item' %}">
+        {% csrf_token %}
+        {{ new_item_form }}
+        <input type="submit">
+    </form>
+    <h3>Your shopping list</h3>
+    <ul>
+        {% for item in shopping_items %}
+            <li>{{ item.list_item_name }} {{ item.quantity }}x</li>
+        {% endfor %}
+    </ul>
+{% endblock %}

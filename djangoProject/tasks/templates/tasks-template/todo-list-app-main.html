@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <title>TO-DO Lists App</title>
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{% url 'index' %}">Hello App</a></li>
+                <!--
+                <li><a href="">Task App</a></li>
+                -->
+            </ul>
+        </nav>
+    </header>
+    <h1>TO-DO Lists App</h1>
+    {% block items %}
+    {% endblock %}
+</body>
+</html>
