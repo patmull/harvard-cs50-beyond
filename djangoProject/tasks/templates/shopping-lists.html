@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="cs">
+    <header>
+    </header>
+    <body>
+        <h1>Shopping lists</h1>
+        <h2>Add shopping item</h2>
+        <form method="POST" action="{% url 'add_new_shopping_item' %}">
+            {% csrf_token %}
+            <label>
+                <p>Shopping item:</p>
+                <input type="text" name="shopping_item_name">
+            </label>
+            <input type="submit">
+        </form>
+        <h2>Your shopping list</h2>
+        <ul>
+            {% for item in shopping_items %}
+                <li>{{ item }}</li>
+            {% endfor %}
+        </ul>
+
+    </body>
+</html>
