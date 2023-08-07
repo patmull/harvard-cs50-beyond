@@ -12,6 +12,8 @@
     <ul>
         {% for item in shopping_items %}
             <li>{{ item.list_item_name }} {{ item.quantity }}x</li>
+            {% empty %}
+                <p>There are no items to display.</p>
         {% endfor %}
     </ul>
 {% endblock %}

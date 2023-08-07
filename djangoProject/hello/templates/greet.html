@@ -2,11 +2,7 @@
 <html>
     <body>
         <h1>Hello, {{ name }}</h1>
-        <h2>This is one of your added lists:</h2>
-        <ul>
-            {% for item in sample_list %}
-                <li>{{ item.list_item_name }} {{ item.quantity }}x</li>
-            {% endfor %}
-        </ul>
+        <h2>This is your Shopping list app:</h2>
+        {% include 'shopping-lists.html' %}
     </body>
 </html>
