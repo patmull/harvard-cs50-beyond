@@ -5,7 +5,7 @@
         <h2>This is one of your added lists:</h2>
         <ul>
             {% for item in sample_list %}
-                <li>item</li>
+                <li>{{ item.list_item_name }} {{ item.quantity }}x</li>
             {% endfor %}
         </ul>
     </body>

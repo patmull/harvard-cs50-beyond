@@ -3,8 +3,6 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.shortcuts import render
 
-from tasks.views import LIST_OF_SHOPPING_ITEMS
-
 
 # Create your views here.
 def index(request):
@@ -26,7 +24,7 @@ def greet_better(request, name):
 def greet_even_better(request, name):
     # This list may be viewed in the /tasks URL and holds the value until app is restarted,
     # however here the values are nto stored anymore. We need something better: session or database
-    sample_list = LIST_OF_SHOPPING_ITEMS
+    sample_list = request.session.get('list_of_shopping_items')
     print("sample_list:")
     print(sample_list)
     # FLASK: return render_template('templates/greet.html', name=name.capitalize())

@@ -3,7 +3,7 @@
 {% block items %}
     <h2>Shopping lists</h2>
     <h3>Add shopping item</h3>
-    <form method="POST" action="{% url 'hello:add_new_shopping_item' %}">
+    <form method="POST" action="{% url 'tasks:add_new_shopping_item' %}">
         {% csrf_token %}
         {{ new_item_form }}
         <input type="submit">

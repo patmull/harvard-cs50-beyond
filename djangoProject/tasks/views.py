@@ -3,7 +3,6 @@ from django.shortcuts import render
 
 # If lists is defined as a "global" variable, values stays there until server restart
 LIST_OF_TASKS = ['nákup', 'vysávání', 'zřídit účet']
-LIST_OF_SHOPPING_ITEMS = []
 
 
 class NewItemForm(forms.Form):
@@ -31,7 +30,10 @@ def index(request):
 
 
 def shopping_lists(request):
-    list_of_shopping_items = LIST_OF_SHOPPING_ITEMS
+    # Before first use of a session, we need to run: python manage.py migrate
+    # It is important to use the if condition here, otherwise it will create a new list each time
+    if 'list_of_shopping_items' not in request.session:
+        request.session['list_of_shopping_items'] = []
 
     # If lists are defined as a function variables, values are lost after page refresh
     # list_of_tasks = ['nákup', 'vysávání', 'zřídit účet']
@@ -39,9 +41,12 @@ def shopping_lists(request):
         new_shopping_item_name = request.POST.get('new_list_item')
         new_shopping_item_quantity = request.POST.get('new_list_item_quantity')
         new_item_quantity_pair = {'list_item_name': new_shopping_item_name, 'quantity': new_shopping_item_quantity}
-        list_of_shopping_items.append(new_item_quantity_pair)
+        # This does not work well
+        # request.session['list_of_shopping_items'].append(new_item_quantity_pair)
+        # This how it supposed to work:
+        request.session['list_of_shopping_items'] += [new_item_quantity_pair]
 
     return render(request, 'shopping-lists.html', {
-        'shopping_items': list_of_shopping_items,
-        "new_item_form": NewFormWithQuantity
+        'shopping_items': request.session['list_of_shopping_items'],
+        'new_item_form': NewFormWithQuantity
     })
