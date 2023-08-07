@@ -1,0 +1,10 @@
+{% extends 'flights/base.html' %}
+
+{% block main_content %}
+    <h2>Flight: {{ flight.flight_number }}</h2>
+    <ul>
+        <li>Destination: {{ flight.destination }}</li>
+        <li>Origin: {{ flight.origin }}</li>
+        <li>Duration: {{ flight.duration }}</li>
+    </ul>
+{% endblock %}

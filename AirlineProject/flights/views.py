@@ -8,3 +8,9 @@ def index(request):
     all_flights = Flight.objects.all()
     return render(request, 'flights/index.html',
                   {'flights': all_flights})
+
+
+def flight(request, flight_number):
+    filtered_flight = Flight.objects.filter(flight_number=flight_number).first()
+    return render(request, 'flights/flight-detail.html',
+                  {'flight': filtered_flight})
