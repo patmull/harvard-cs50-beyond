@@ -3,6 +3,8 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.shortcuts import render
 
+from tasks.views import LIST_OF_SHOPPING_ITEMS
+
 
 # Create your views here.
 def index(request):
@@ -22,10 +24,16 @@ def greet_better(request, name):
 
 
 def greet_even_better(request, name):
+    # This list may be viewed in the /tasks URL and holds the value until app is restarted,
+    # however here the values are nto stored anymore. We need something better: session or database
+    sample_list = LIST_OF_SHOPPING_ITEMS
+    print("sample_list:")
+    print(sample_list)
     # FLASK: return render_template('templates/greet.html', name=name.capitalize())
     # Django:
     return render(request, 'greet.html', {
-        "name": name.capitalize()
+        "name": name.capitalize(),
+        "sample_list": sample_list,
     })
 
 
@@ -37,6 +45,6 @@ def is_christmas(request):
     else:
         is_it_christmas_returned_value = False
 
-    return render(request, 'hello/is-it.christmas.html', {
+    return render(request, 'hello/is-it-christmas.html', {
         "is_christmas_now": is_it_christmas_returned_value
     })
