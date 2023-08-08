@@ -5,6 +5,16 @@
     <title>Airlines App: {% block page_title %}{% endblock %}</title>
 </head>
 <body>
+    <header>
+        {% if user_info %}
+            <p>Hello, {{ user_info.username }}</p>
+            <p>{{ user_info.email }}</p>
+            <form method="POST" action="{% url 'users:logout' %}">
+                {% csrf_token %}
+                <input type="submit" value="Logout">
+            </form>
+        {% endif %}
+    </header>
     {% block main_content %}
     {% endblock %}
 </body>
