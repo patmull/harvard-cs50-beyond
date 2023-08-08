@@ -19,7 +19,7 @@ def flight(request, flight_number):
                   {
                       'flight': filtered_flight,
                       'flight_passengers': filtered_flight.passengers.all(),
-                      'passengers': passengers
+                      'passengers': Passenger.objects.exclude(flights=filtered_flight).all()
                   })
 
 
@@ -28,7 +28,7 @@ def book(request, flight_number):
     if request.method == "POST":
         passenger_id = request.POST.get('passenger_id')
         passenger_found = Passenger.objects.filter(id=passenger_id).first()
-        flight_number = request.POST.get('flight_number')
+        flight_number = flight_number
         flight_found = Flight.objects.filter(flight_number=flight_number).first()
         flight_number = [flight_found.flight_number]
 

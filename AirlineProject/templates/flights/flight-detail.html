@@ -19,7 +19,6 @@
     <h4>Registered Passengers</h4>
     <form method="POST" action={% url 'flights:book_flight' flight.flight_number %}>
         {% csrf_token %}
-        <input type="hidden" name="flight_number" value="{{ flight.flight_number }}">
         <label>
             Select a passenger:
             <select name="passenger_id">
