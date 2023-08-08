@@ -8,12 +8,29 @@
         <li>Duration: {{ flight.duration }}</li>
     </ul>
 
-    <h3>Passengers</h3>
+    <h2>Passengers Board List</h2>
+    <h3>Passengers list</h3>
     <ul>
-        {% for passenger in passengers %}
-            <li>{{ passenger }}</li>
-        {% empty %}
-            <p>No passengers here.</p>
-        {% endfor %}
+    {% for passenger in flight_passengers %}
+        <li>{{ passenger }}</li>
+    {% endfor %}
     </ul>
+    <h3>Book a Flight for Passenger</h3>
+    <h4>Registered Passengers</h4>
+    <form method="POST" action={% url 'flights:book_flight' flight.flight_number %}>
+        {% csrf_token %}
+        <input type="hidden" name="flight_number" value="{{ flight.flight_number }}">
+        <label>
+            Select a passenger:
+            <select name="passenger_id">
+                {% for passenger in passengers %}
+                    <option value="{{ passenger.id }}">{{ passenger }}</option>
+                {% empty %}
+                    <option disabled>No passengers here.</option>
+                {% endfor %}
+            </select>
+        </label>
+        <input type="submit" value="Book">
+    </form>
+
 {% endblock %}
