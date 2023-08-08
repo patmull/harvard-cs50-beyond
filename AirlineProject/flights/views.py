@@ -30,7 +30,8 @@ def book(request, flight_number):
         passenger_found = Passenger.objects.filter(id=passenger_id).first()
         flight_number = request.POST.get('flight_number')
         flight_found = Flight.objects.filter(flight_number=flight_number).first()
+        flight_number = [flight_found.flight_number]
 
         flight_found.passengers.add(passenger_found)
 
-        return HttpResponseRedirect(reverse('flights:flight_detail', args=[flight_found.flight_number]))
+        return HttpResponseRedirect(reverse('flights:flight_detail', args=flight_number))
