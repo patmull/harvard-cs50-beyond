@@ -1,0 +1,21 @@
+{% extends "encyclopedia/layout.html" %}
+
+{% block title %}
+{% endblock %}
+
+{% if error_message %}
+    <p>{{ error_message }}</p>
+{% endif %}
+
+{% block body %}
+    <h1>Entry title</h1>
+    <p></p>
+    <ul>
+        {% for entry in entries %}
+            <li>{{ entry }}</li>
+        {% empty %}
+            <p>No entries to view.</p>
+        {% endfor %}
+    </ul>
+
+{% endblock %}
