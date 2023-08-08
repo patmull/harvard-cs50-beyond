@@ -12,8 +12,8 @@
     <h1>All Pages</h1>
 
     <ul>
-        {% for entry in entries %}
-            <li>{{ entry }}</li>
+        {% for entry_name in entries %}
+            <li><a href="{% url 'title' title=entry_name %}">{{ entry_name }}</a></li>
         {% empty %}
             <p>No entries to view.</p>
         {% endfor %}
