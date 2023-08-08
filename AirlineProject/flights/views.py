@@ -13,4 +13,7 @@ def index(request):
 def flight(request, flight_number):
     filtered_flight = Flight.objects.filter(flight_number=flight_number).first()
     return render(request, 'flights/flight-detail.html',
-                  {'flight': filtered_flight})
+                  {
+                      'flight': filtered_flight,
+                      'passengers': filtered_flight.passengers.all()
+                  })

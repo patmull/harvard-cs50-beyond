@@ -8,7 +8,11 @@
     <h1>Today flights</h1>
     <ul>
         {% for flight in flights %}
-            <li>{{ flight }}</li>
+            <li>
+                <form method="GET" action="{{ flight.flight_number }}">
+                    <input type="submit" value="{{ flight }}">
+                </form>
+            </li>
         {% endfor %}
     </ul>
 {% endblock %}

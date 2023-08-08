@@ -69,3 +69,19 @@ AttributeError: 'QuerySet' object has no attribute 'id'
 >>> f = Flight.objects.filter(flight_number="387SF876D").first()
 >>> p.flights.add(f)
 >>> p
+>>> from flights.models import Flight
+>>> f = Flight.objects.filter(flight_number="387SF876D").first()
+>>> p.flights.add(f)
+>>> passengers = Passenger.objects.all()
+>>> passengers
+<QuerySet [<Passenger: Maxwell Silverhammer>]>
+>>> f
+<Flight: Flight number: 387SF876D, origin: New York, JFK, destination: Prague, JFK>
+>>> f.passengers
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+AttributeError: 'Flight' object has no attribute 'passengers'
+>>> f.passengers_flights
+<django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x7f8943100880>
+>>> f.passengers_flights.first()
+<Passenger: Maxwell Silverhammer>
