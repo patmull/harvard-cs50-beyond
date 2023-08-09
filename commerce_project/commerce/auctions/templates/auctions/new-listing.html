@@ -1,0 +1,28 @@
+{% extends 'auctions/layout.html' %}
+
+{% block body %}
+    <form method="POST" action="{% url 'new_listing' %}">
+        {% csrf_token %}
+        <label>
+            Title*:
+            <input type="text" name="item_name" required>
+        </label>
+        <label>
+            Starting bid*:
+            <input type="number" name="starting_bid" placeholder="10.0" required>
+        </label>
+        <label>
+            Image URL (optional):
+            <input type="text" name="image_url" placeholder="https://www.imguru.com/23fe3f">
+        </label>
+        <label>
+            Select category:
+            <select name="category_name" required>
+                {% for category in categories %}
+                    <option value="{{ category.category_name }}">{{ category }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <input type="submit">
+    </form>
+{% endblock %}

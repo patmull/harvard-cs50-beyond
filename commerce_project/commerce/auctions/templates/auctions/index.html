@@ -1,7 +1,11 @@
 {% extends "auctions/layout.html" %}
 
 {% block body %}
+    {% if message_success %}
+        <p style="color:green">{{ message_success }}</p>
+    {% endif %}
     <h2>Active Listings</h2>
-
-    TODO
+    {% for active_listing in active_listings %}
+        {{ active_listings }}
+    {% endfor %}
 {% endblock %}

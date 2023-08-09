@@ -5,13 +5,31 @@ from django.db import models
 class User(AbstractUser):
     pass
 
+    def __str__(self):
+        return f"{self.username}"
+
+
+class Category(models.Model):
+    category_name = models.CharField(max_length=128)
+
+    def __str__(self):
+        return f"{self.category_name}"
+
 
 class AuctionListing(models.Model):
-    pass
+    item_name = models.CharField(max_length=128)
+    created_at = models.DateTimeField()
+    starting_bid = models.FloatField()
+    image_url = models.CharField(max_length=512, blank=True)
+    user = models.ForeignKey(User, related_name='users_auction_listing', on_delete=models.CASCADE)
+    category = models.ForeignKey(Category, related_name='category', on_delete=models.CASCADE)
 
+    def __str__(self):
+        return f"Name: {self.item_name}, Created at: {self.created_at}, Starting bid: {self.starting_bid}"
 
 class Bid(models.Model):
     price = models.IntegerField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
 class Comment(models.Model):
