@@ -4,8 +4,36 @@
     {% if message_success %}
         <p style="color:green">{{ message_success }}</p>
     {% endif %}
+    {% if message_error %}
+        <p style="color:red">{{ message_error }}</p>
+    {% endif %}
     <h2>Active Listings</h2>
     {% for active_listing in active_listings %}
-        {{ active_listings }}
+        <h3>{{ active_listing.item_name }}</h3>
+        <p>
+            <img src="{{ active_listing.image_url }}" style="max-height: 300px; max-width: 300px" alt="Auction foto">
+        </p>
+        <p style="color:gray">{{ active_listing.created_at }}</p>
+
+        <p>Starting bid: {{ active_listing.starting_bid }}</p>
+        {% if active_listing.max_bid %}
+            <p>Max bid (so far): {{ active_listing.max_bid }}</p>
+        {% else %}
+            <p>No bid yet. Be the first one!</p>
+        {% endif %}
+
+        {% if user %}
+            <form method="POST" action="{% url 'bid_for_listing' active_listing_id=active_listing.id user_id=user.id %}">
+                {% csrf_token %}
+                <label>
+                    <p>
+                        Bid:
+                        <input type="number" name="bid_value" placeholder="10.0">
+                    </p>
+                </label>
+                <input type="submit" value="Bid">
+            </form>
+        {% endif %}
+
     {% endfor %}
 {% endblock %}

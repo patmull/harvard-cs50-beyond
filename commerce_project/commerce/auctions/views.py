@@ -7,12 +7,20 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from .models import User, AuctionListing, Category
+from . import utils
+from .models import User, AuctionListing, Category, Bid
 
 
 def index(request):
 
-    return render(request, "auctions/index.html")
+    active_listings = AuctionListing.objects.all()
+
+    if request.user.is_authenticated:
+        index_dict = utils.create_auction_dict(user=request.user)
+        return render(request, "auctions/index.html", index_dict)
+
+    index_dict = utils.create_auction_dict()
+    return render(request, "auctions/index.html", index_dict)
 
 
 def login_view(request):
@@ -76,11 +84,22 @@ def new_listing(request):
 
     if request.method == "POST":
         item_name = request.POST['item_name']
+        current_user = request.user
+
+        # Check whether this item exists for the same user
+        user_found = User.objects.filter(username=current_user.username).first()
+        listing_found = AuctionListing.objects.filter(item_name=item_name, user=user_found).first()
+
+        if listing_found:
+            return render(request, 'auctions/new-listing.html',
+                          {
+                              'error_message': "You have already added the item with the same name",
+                              'categories': categories
+                          })
+
         created_at = datetime.datetime.now()
         starting_bid = request.POST['starting_bid']
         image_url = request.POST['image_url']
-
-        current_user = request.user
 
         category_name = request.POST['category_name']
         category = Category.objects.filter(category_name=category_name).first()
@@ -89,8 +108,36 @@ def new_listing(request):
                                  image_url=image_url, user=current_user, category=category)
         listing.save()
 
-        listings = AuctionListing.objects.all()
-        return render(request, 'auctions/index.html', {
-            'active_listings': listings,
-            'message_success': "Successfully added new auction"
-        })
+        message_success = "Successfully added a new auction"
+        index_dict = utils.create_auction_dict(message_success)
+
+        return render(request, 'auctions/index.html', index_dict)
+
+
+def new_bid(request, active_listing_id, user_id):
+    if request.method == 'POST':
+        price = float(request.POST['bid_value'])
+
+        corresponding_active_listing = AuctionListing.objects.filter(id=active_listing_id).first()
+        corresponding_user = User.objects.filter(id=user_id).first()
+
+        if price > corresponding_active_listing.starting_bid:
+            new_bid = Bid(price=price, user=corresponding_user)
+            new_bid.save()
+
+            corresponding_active_listing.bids.add(new_bid)
+
+            message_success = "Successfully added a new bid!"
+            index_dict = utils.create_auction_dict(success_message=message_success)
+
+            return render(request, 'auctions/index.html', index_dict)
+        else:
+            error_message = ("Error occurred when adding a new bid! You need to enter higher "
+                             "bid than the minimum bid value")
+            index_dict = utils.create_auction_dict(error_message=error_message)
+
+            return render(request, 'auctions/index.html', index_dict)
+
+    if request.method == 'GET':
+        index_dict = utils.create_auction_dict()
+        return render(request, 'auctions/index.html', index_dict)

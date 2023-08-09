@@ -25,4 +25,7 @@
         </label>
         <input type="submit">
     </form>
+    {% if error_message %}
+        <p style="color:red">{{ error_message }}</p>
+    {% endif %}
 {% endblock %}
