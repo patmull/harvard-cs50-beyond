@@ -1,6 +1,7 @@
 {% extends "encyclopedia/layout.html" %}
 
 {% block title %}
+    {{ entry_detail.title }}
 {% endblock %}
 
 {% if error_message %}
@@ -8,6 +9,6 @@
 {% endif %}
 
 {% block body %}
-    <h1>{{ entry_detail.title }}</h1>
-    <p>{{ entry_detail.text }}</p>
+    <p>{{ entry_detail.markdown|safe }}</p>
+    <a href="{% url 'edit_article' entry_detail.title %}">Edit</a>
 {% endblock %}

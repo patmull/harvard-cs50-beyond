@@ -1,0 +1,29 @@
+{% extends 'encyclopedia/layout.html' %}
+
+{% block body %}
+    {% if error_messages %}
+        {% for error_message in error_messages %}
+            <p style="color:red">{{ error_message }}</p>
+        {% endfor %}
+    {% endif %}
+    <form method="POST" action="{% if article %}{% url 'edit_article' article.title %}{% else %}{% url 'new_page' %}{% endif %}">
+        {% csrf_token %}
+        <label>
+            Title:
+            <input type="text" name="title" value="{% if article %}{{ article.title }}{% endif %}">
+        </label>
+        <br>
+        <label>
+            <textarea name="markdown" rows="35" cols="33">
+                {% if article %}{{ article.markdown }}{% endif %}
+            </textarea>
+        </label>
+        <br>
+        {% if article %}
+            <input type="submit" value="Submit New Page">
+        {% else %}
+            <input type="submit" value="Edit Page">
+        {% endif %}
+
+    </form>
+{% endblock %}
