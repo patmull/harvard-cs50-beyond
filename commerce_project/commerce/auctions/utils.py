@@ -4,7 +4,7 @@ from auctions.models import AuctionListing, Bid
 
 
 def create_auction_dict(success_message=None, error_message=None, user=None):
-    listings = AuctionListing.objects.all()
+    listings = AuctionListing.objects.filter(active=True)
 
     listings_max_values = []
 

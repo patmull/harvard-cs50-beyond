@@ -141,3 +141,15 @@ def new_bid(request, active_listing_id, user_id):
     if request.method == 'GET':
         index_dict = utils.create_auction_dict()
         return render(request, 'auctions/index.html', index_dict)
+
+
+def close_auction(request):
+    index_dict = utils.create_auction_dict(success_message="Successfully closed an auction.")
+
+    active_listing_id = request.POST['active_listing_id']
+
+    active_listing = AuctionListing.objects.get(id=active_listing_id)
+    active_listing.active = False
+    active_listing.save()
+
+    return render(request, 'auctions/index.html', index_dict)

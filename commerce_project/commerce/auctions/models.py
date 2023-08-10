@@ -26,6 +26,7 @@ class AuctionListing(models.Model):
     created_at = models.DateTimeField()
     starting_bid = models.FloatField()
     image_url = models.CharField(max_length=512, blank=True)
+    active = models.BooleanField(default=False)
     user = models.ForeignKey(User, related_name='users_auction_listing', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, related_name='category', on_delete=models.CASCADE)
     bids = models.ManyToManyField(Bid, related_name="bids")

@@ -26,12 +26,17 @@
             <form method="POST" action="{% url 'bid_for_listing' active_listing_id=active_listing.id user_id=user.id %}">
                 {% csrf_token %}
                 <label>
-                    <p>
-                        Bid:
-                        <input type="number" name="bid_value" placeholder="10.0">
-                    </p>
+                    Bid:
+                    <input type="number" name="bid_value" placeholder="10.0">
                 </label>
                 <input type="submit" value="Bid">
+            </form>
+        {% endif %}
+        {% if user.id == active_listing.user.id %}
+            <form method="POST" action="{% url 'close_auction' active_listing_id=active_listing.id %}">
+                {% csrf_token %}
+                Close the auction:
+                <input type="submit" value="Close">
             </form>
         {% endif %}
 
