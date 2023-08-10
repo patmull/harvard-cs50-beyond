@@ -24,6 +24,3 @@ class UserAdmin(BaseUserAdmin):
 # Register your models here.
 admin.site.register(Category)
 admin.site.register(AuctionListing)
-
-
-

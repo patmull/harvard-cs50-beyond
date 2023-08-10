@@ -4,9 +4,14 @@
     {% if message_success %}
         <p style="color:green">{{ message_success }}</p>
     {% endif %}
-    {% if message_error %}
+    {% if message_error%}
         <p style="color:red">{{ message_error }}</p>
     {% endif %}
+    {% if request.session.error_message%}
+        <p style="color:red">{{ request.session.error_message }}</p>
+    {% endif %}
+
+
     <h2>Active Listings</h2>
     {% for active_listing in active_listings %}
         <h3>{{ active_listing.item_name }}</h3>
@@ -32,7 +37,7 @@
                 <input type="submit" value="Bid">
             </form>
         {% endif %}
-        {% if user.id == active_listing.user.id %}
+        {% if user.id == active_listing.user_id %}
             <form method="POST" action="{% url 'close_auction' active_listing_id=active_listing.id %}">
                 {% csrf_token %}
                 Close the auction:
