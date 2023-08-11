@@ -8,8 +8,8 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from . import utils
-from .models import User, AuctionListing, Category, Bid, AuctionWinner
-from .utils import get_max_bid_price
+from .models import User, AuctionListing, Category, Bid, AuctionWins
+from .utils import get_max_bid_price, get_highest_bid_user
 
 
 def index(request):
@@ -131,7 +131,7 @@ def new_bid(request, active_listing_id, user_id):
 
             corresponding_active_listing.bids.add(new_bid)
 
-            new_auction_winner = AuctionWinner(user=corresponding_user, bid=new_bid)
+            new_auction_winner = AuctionWins(user=corresponding_user, bid=new_bid)
             new_auction_winner.save()
             corresponding_active_listing.auction_winner = new_auction_winner
             corresponding_active_listing.save()
@@ -161,6 +161,17 @@ def close_auction(request, active_listing_id):
     active_listing.active = False
     active_listing.save()
 
+    highest_bid_user = get_highest_bid_user(active_listing)
+
+    auction_win = AuctionWins(auction=active_listing, user=highest_bid_user)
+    auction_win.save()
+
     index_dict = utils.create_auction_dict(request, success_message="Successfully closed an auction.")
 
+    return render(request, 'auctions/index.html', index_dict)
+
+
+def bought_items(request):
+
+    index_dict = utils.create_auction_dict(request, only_wins=True)
     return render(request, 'auctions/index.html', index_dict)

@@ -25,11 +25,6 @@ class Bid(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 
-class AuctionWinner(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    bid = models.ForeignKey(Bid, on_delete=models.CASCADE)
-
-
 class AuctionListing(models.Model):
     item_name = models.CharField(max_length=128)
     created_at = models.DateTimeField()
@@ -43,12 +38,16 @@ class AuctionListing(models.Model):
     user = models.ForeignKey(User, related_name='users_auction_listing', on_delete=models.CASCADE)
     category = models.ForeignKey(Category, related_name='category', on_delete=models.CASCADE)
     bids = models.ManyToManyField(Bid, related_name="bids")
-    auction_winner = models.OneToOneField(AuctionWinner, related_name='auction_winner', on_delete=models.CASCADE,
-                                          default=None, blank=True, null=True)
 
     def __str__(self):
         return (f"Name: {self.item_name}, Created at: {self.created_at}, Starting bid: {self.starting_bid}, "
                 f"'Posted by User: {self.user}")
+
+
+class AuctionWins(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    auction = models.OneToOneField(AuctionListing, related_name='auction', on_delete=models.CASCADE,
+                                   default=None, blank=True, null=True)
 
 
 class Comment(models.Model):

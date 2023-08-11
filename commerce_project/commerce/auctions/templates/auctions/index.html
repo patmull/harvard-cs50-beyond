@@ -12,7 +12,7 @@
     {% endif %}
 
 
-    <h2>Active Listings</h2>
+    <h2>{{ title }}</h2>
     {% for active_listing in active_listings %}
         <h3>{{ active_listing.item_name }}</h3>
         <p>
@@ -38,17 +38,18 @@
                 </label>
                 <input type="submit" value="Bid">
             </form>
+            {% if active_listing.user_is_winner_message %}
+                <p style="color: green">{{ active_listing.user_is_winner_message }}</p>
+            {% endif %}
+            {% if user.id == active_listing.user_id %}
+                <form method="POST" action="{% url 'close_auction' active_listing_id=active_listing.id %}">
+                    {% csrf_token %}
+                    Close the auction:
+                    <input type="submit" value="Close">
+                </form>
+            {% endif %}
         {% endif %}
-        {% if active_listing.user_is_winner %}
-            <p style="color: green">You are the current winner of this auction. Keep it up!</p>
-        {% endif %}
-        {% if user.id == active_listing.user_id %}
-            <form method="POST" action="{% url 'close_auction' active_listing_id=active_listing.id %}">
-                {% csrf_token %}
-                Close the auction:
-                <input type="submit" value="Close">
-            </form>
-        {% endif %}
-
+    {% empty %}
+        <p>No items here.</p>
     {% endfor %}
 {% endblock %}

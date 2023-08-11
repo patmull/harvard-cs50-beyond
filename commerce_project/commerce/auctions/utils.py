@@ -1,6 +1,6 @@
 from django.db.models import Max
 
-from auctions.models import AuctionListing, Bid
+from auctions.models import AuctionListing, AuctionWins
 
 
 def get_max_bid_price(listing):
@@ -10,12 +10,23 @@ def get_max_bid_price(listing):
     return max_bid
 
 
-def get_max_bid(listing):
-    max_bid = listing.bids.aggregate(Max('price'))
+def get_highest_bid_user(listing):
+    max_bid = listing.bids.order_by('price').last()
+    return max_bid.user
 
 
-def create_auction_dict(request, success_message=None, error_message=None):
-    listings = AuctionListing.objects.filter(active=True)
+def create_auction_dict(request, success_message=None, error_message=None,
+                        only_wins=False):
+
+    user = request.user
+
+    if only_wins:
+        auction_wins = AuctionWins.objects.filter(user=user)
+        print("auction_wins:")
+        print(auction_wins)
+        listings = AuctionListing.objects.all()
+    else:
+        listings = AuctionListing.objects.filter(active=True)
 
     listings_max_values = []
 
@@ -30,22 +41,35 @@ def create_auction_dict(request, success_message=None, error_message=None):
             max_bid = None
 
         num_of_bids = listing.bids.count()
-        if listing.auction_winner:
-            auction_winner_id = listing.auction_winner.user.id
-        else:
-            auction_winner_id = None
 
-        if auction_winner_id == request.user.id:
-            user_is_winner = True
-        else:
-            user_is_winner = False
+        if only_wins is True:
+            user_auction_wins = AuctionWins.objects.filter(auction_id=listing.id, user_id=user.id)
+            if user_auction_wins.exists():
+                user_is_winner = True
+            else:
+                user_is_winner = False
 
-        listings_max_values.append({'id': listing.id, 'item_name': listing.item_name, 'image_url': listing.image_url,
-                                    'created_at': listing.created_at, 'starting_bid': listing.starting_bid,
-                                    'max_bid': max_bid, 'num_of_bids': num_of_bids,
-                                    'closing_on': listing.closing_on, 'user_is_winner': user_is_winner, 'user_id': listing.user.id})
+            if user_is_winner is True:
+                listings_max_values.append({'id': listing.id, 'item_name': listing.item_name, 'image_url': listing.image_url,
+                                            'created_at': listing.created_at, 'starting_bid': listing.starting_bid,
+                                            'max_bid': max_bid, 'num_of_bids': num_of_bids,
+                                            'user_is_winner_message': "You are the winner of this auction.",
+                                            'user_id': listing.user.id})
+        else:
+            listings_max_values.append(
+                {'id': listing.id, 'item_name': listing.item_name, 'image_url': listing.image_url,
+                 'created_at': listing.created_at, 'starting_bid': listing.starting_bid,
+                 'max_bid': max_bid, 'num_of_bids': num_of_bids,
+                 'user_is_winner_message': "You are the current winner of this auction. Keep it up!",
+                 'user_id': listing.user.id})
+
+    title = 'Active Listings'
+
+    if only_wins:
+        title = 'Your won auctions'
 
     return {
+        'title': title,
         'active_listings': listings_max_values,
         'message_success': success_message,
         'message_error': error_message,
