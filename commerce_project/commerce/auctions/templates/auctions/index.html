@@ -18,7 +18,9 @@
         <p>
             <img src="{{ active_listing.image_url }}" style="max-height: 300px; max-width: 300px" alt="Auction foto">
         </p>
-        <p style="color:gray">{{ active_listing.created_at }}</p>
+        <p style="color:gray">Created at:{{ active_listing.created_at }}</p>
+        <p style="color:dimgray">Closing on:{{ active_listing.closed_on }}</p>
+        <p>Num of bids: {{ active_listing.num_of_bids }}</p>
 
         <p>Starting bid: {{ active_listing.starting_bid }}</p>
         {% if active_listing.max_bid %}
@@ -36,6 +38,9 @@
                 </label>
                 <input type="submit" value="Bid">
             </form>
+        {% endif %}
+        {% if active_listing.user_is_winner %}
+            <p style="color: green">You are the current winner of this auction. Keep it up!</p>
         {% endif %}
         {% if user.id == active_listing.user_id %}
             <form method="POST" action="{% url 'close_auction' active_listing_id=active_listing.id %}">

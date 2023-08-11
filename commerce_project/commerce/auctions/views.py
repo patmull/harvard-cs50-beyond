@@ -8,8 +8,8 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from . import utils
-from .models import User, AuctionListing, Category, Bid
-from .utils import get_max_bid
+from .models import User, AuctionListing, Category, Bid, AuctionWinner
+from .utils import get_max_bid_price
 
 
 def index(request):
@@ -17,10 +17,10 @@ def index(request):
     active_listings = AuctionListing.objects.all()
 
     if request.user.is_authenticated:
-        index_dict = utils.create_auction_dict(user=request.user)
+        index_dict = utils.create_auction_dict(request)
         return render(request, "auctions/index.html", index_dict)
 
-    index_dict = utils.create_auction_dict()
+    index_dict = utils.create_auction_dict(request)
 
     return render(request, "auctions/index.html", index_dict)
 
@@ -111,7 +111,7 @@ def new_listing(request):
         listing.save()
 
         message_success = "Successfully added a new auction"
-        index_dict = utils.create_auction_dict(message_success)
+        index_dict = utils.create_auction_dict(request, success_message=message_success)
 
         return render(request, 'auctions/index.html', index_dict)
 
@@ -123,16 +123,22 @@ def new_bid(request, active_listing_id, user_id):
         corresponding_active_listing = AuctionListing.objects.filter(id=active_listing_id).first()
         corresponding_user = User.objects.filter(id=user_id).first()
 
-        max_bid = get_max_bid(listing=corresponding_active_listing)
+        max_bid_price = get_max_bid_price(listing=corresponding_active_listing)
 
-        if price > corresponding_active_listing.starting_bid and price > max_bid:
+        if price > corresponding_active_listing.starting_bid and price > max_bid_price:
             new_bid = Bid(price=price, user=corresponding_user)
             new_bid.save()
 
             corresponding_active_listing.bids.add(new_bid)
 
+            new_auction_winner = AuctionWinner(user=corresponding_user, bid=new_bid)
+            new_auction_winner.save()
+            corresponding_active_listing.auction_winner = new_auction_winner
+            corresponding_active_listing.save()
+
             message_success = "Successfully added a new bid!"
-            index_dict = utils.create_auction_dict(success_message=message_success)
+
+            index_dict = utils.create_auction_dict(request, success_message=message_success)
 
             request.session['error_message'] = None
 
@@ -145,7 +151,7 @@ def new_bid(request, active_listing_id, user_id):
             return HttpResponseRedirect(reverse('index'))
 
     if request.method == 'GET':
-        index_dict = utils.create_auction_dict()
+        index_dict = utils.create_auction_dict(request)
         return render(request, 'auctions/index.html', index_dict)
 
 
@@ -155,6 +161,6 @@ def close_auction(request, active_listing_id):
     active_listing.active = False
     active_listing.save()
 
-    index_dict = utils.create_auction_dict(success_message="Successfully closed an auction.")
+    index_dict = utils.create_auction_dict(request, success_message="Successfully closed an auction.")
 
     return render(request, 'auctions/index.html', index_dict)
