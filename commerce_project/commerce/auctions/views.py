@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from . import utils
-from .models import User, AuctionListing, Category, Bid, AuctionWins
+from .models import User, AuctionListing, Category, Bid, AuctionWins, Comment, WatchList
 from .utils import get_max_bid_price, get_highest_bid_user
 
 
@@ -175,3 +175,52 @@ def bought_items(request):
 
     index_dict = utils.create_auction_dict(request, only_wins=True)
     return render(request, 'auctions/index.html', index_dict)
+
+
+def listing_detail(request, listing_id):
+    particular_listing = AuctionListing.objects.filter(id=listing_id).first()
+    print("particular_listing:")
+    print(particular_listing)
+
+    comments = Comment.objects.filter(auction_listing=particular_listing)
+
+    return render(request, 'auctions/listing_detail.html', {
+        'listing': particular_listing,
+        'user': request.user,
+        'comments': comments
+    })
+
+
+def add_comment(request, listing_id, user_id):
+    text = request.POST.get('text', False)
+    found_user = User.objects.filter(id=user_id).first()
+    found_listing = AuctionListing.objects.filter(id=listing_id).first()
+    new_comment = Comment(text=text, user=found_user, auction_listing=found_listing)
+    new_comment.created_at = datetime.datetime.now()
+    new_comment.save()
+
+    return HttpResponseRedirect(reverse('listing_detail', args=(listing_id, )))
+
+
+def add_auction_to_watchlist(request, listing_id, user_id):
+    listing_found = AuctionListing.objects.filter(id=listing_id).first()
+    user_found = User.objects.filter(id=user_id).first()
+
+    new_watchlist_element = WatchList(user=user_found, auction_listing=listing_found)
+    new_watchlist_element.save()
+
+    return HttpResponseRedirect(reverse('index'))
+
+
+def watchlist(request):
+    watchlist_all = WatchList.objects.all()
+    return render(request, 'auctions/watchlist.html', {
+        'watchlist': watchlist_all
+    })
+
+
+def remove_from_watchlist(request, listing_id):
+    watchlist_to_delete = WatchList.objects.filter(auction_listing_id=listing_id).first()
+    watchlist_to_delete.delete()
+
+    return HttpResponseRedirect(reverse('watchlist'))

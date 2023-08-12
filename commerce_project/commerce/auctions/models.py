@@ -52,4 +52,12 @@ class AuctionWins(models.Model):
 
 class Comment(models.Model):
     text = models.CharField(max_length=512)
-    users = models.ManyToManyField(User, related_name='users')
+    created_at = models.DateTimeField()
+    auction_listing = models.ForeignKey(AuctionListing, related_name='auction_listing', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='user', on_delete=models.CASCADE)
+
+
+class WatchList(models.Model):
+    user = models.ForeignKey(User, related_name='user_watchlist', on_delete=models.CASCADE)
+    auction_listing = models.ForeignKey(AuctionListing, related_name='auction_listing_watchlist',
+                                        on_delete=models.CASCADE)

@@ -11,10 +11,13 @@
         <p style="color:red">{{ request.session.error_message }}</p>
     {% endif %}
 
-
     <h2>{{ title }}</h2>
     {% for active_listing in active_listings %}
-        <h3>{{ active_listing.item_name }}</h3>
+        {% if user %}
+            <h3><a href="{% url 'listing_detail' active_listing.id %}">{{ active_listing.item_name }}</a></h3>
+        {% else %}
+            <h3>{{ active_listing.item_name }}</h3>
+        {% endif %}
         <p>
             <img src="{{ active_listing.image_url }}" style="max-height: 300px; max-width: 300px" alt="Auction foto">
         </p>
@@ -48,6 +51,10 @@
                     <input type="submit" value="Close">
                 </form>
             {% endif %}
+            <form method="POST" action="{% url 'add_auction_to_watchlist' listing_id=active_listing.id user_id=user.id %}">
+                {% csrf_token %}
+                <input type="submit" value="Add to watchlist">
+            </form>
         {% endif %}
     {% empty %}
         <p>No items here.</p>
