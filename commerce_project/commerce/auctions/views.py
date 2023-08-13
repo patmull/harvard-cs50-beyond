@@ -108,6 +108,7 @@ def new_listing(request):
 
         listing = AuctionListing(item_name=item_name, created_at=created_at, starting_bid=starting_bid,
                                  image_url=image_url, user=current_user, category=category)
+        listing.active = True
         listing.save()
 
         message_success = "Successfully added a new auction"
@@ -163,8 +164,9 @@ def close_auction(request, active_listing_id):
 
     highest_bid_user = get_highest_bid_user(active_listing)
 
-    auction_win = AuctionWins(auction=active_listing, user=highest_bid_user)
-    auction_win.save()
+    if highest_bid_user is not None:
+        auction_win = AuctionWins(auction=active_listing, user=highest_bid_user)
+        auction_win.save()
 
     index_dict = utils.create_auction_dict(request, success_message="Successfully closed an auction.")
 
@@ -224,3 +226,10 @@ def remove_from_watchlist(request, listing_id):
     watchlist_to_delete.delete()
 
     return HttpResponseRedirect(reverse('watchlist'))
+
+
+def category(request, category_id):
+    auction_listing_with_give_category = AuctionListing.objects.filter(category_id=category_id)
+    return render(request, 'auctions/category.html', {
+        'auction_listings': auction_listing_with_give_category
+    })

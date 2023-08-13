@@ -16,5 +16,6 @@ urlpatterns = [
     path('add-commnent/<listing_id>/<user_id>', views.add_comment, name='add_comment'),
     path('add-to-watchlist/<listing_id>/<user_id>', views.add_auction_to_watchlist, name='add_auction_to_watchlist'),
     path('watchlist', views.watchlist, name='watchlist'),
-    path('watchlist/delete/<listing_id>', views.remove_from_watchlist, name='remove_from_watchlist')
+    path('watchlist/delete/<listing_id>', views.remove_from_watchlist, name='remove_from_watchlist'),
+    path('category/<category_id>', views.category, name='category')
 ]

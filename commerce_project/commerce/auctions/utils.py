@@ -12,7 +12,10 @@ def get_max_bid_price(listing):
 
 def get_highest_bid_user(listing):
     max_bid = listing.bids.order_by('price').last()
-    return max_bid.user
+    if max_bid is not None:
+        return max_bid.user
+    else:
+        return None
 
 
 def create_auction_dict(request, success_message=None, error_message=None,
@@ -44,7 +47,7 @@ def create_auction_dict(request, success_message=None, error_message=None,
 
         if only_wins is True:
             user_auction_wins = AuctionWins.objects.filter(auction_id=listing.id, user_id=user.id)
-            if user_auction_wins.exists():
+            if user_auction_wins is not None:
                 user_is_winner = True
             else:
                 user_is_winner = False
@@ -53,6 +56,7 @@ def create_auction_dict(request, success_message=None, error_message=None,
                 listings_max_values.append({'id': listing.id, 'item_name': listing.item_name, 'image_url': listing.image_url,
                                             'created_at': listing.created_at, 'starting_bid': listing.starting_bid,
                                             'max_bid': max_bid, 'num_of_bids': num_of_bids,
+                                            'category': listing.category,
                                             'user_is_winner_message': "You are the winner of this auction.",
                                             'user_id': listing.user.id})
         else:
@@ -60,6 +64,7 @@ def create_auction_dict(request, success_message=None, error_message=None,
                 {'id': listing.id, 'item_name': listing.item_name, 'image_url': listing.image_url,
                  'created_at': listing.created_at, 'starting_bid': listing.starting_bid,
                  'max_bid': max_bid, 'num_of_bids': num_of_bids,
+                 'category': listing.category,
                  'user_is_winner_message': "You are the current winner of this auction. Keep it up!",
                  'user_id': listing.user.id})
 
