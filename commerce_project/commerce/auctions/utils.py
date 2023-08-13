@@ -51,6 +51,12 @@ def create_auction_dict(request, success_message=None, error_message=None,
         else:
             user_is_winner = False
 
+        returned_dict = {'id': listing.id, 'item_name': listing.item_name,
+                         'image_url': listing.image_url, 'created_at': listing.created_at,
+                         'starting_bid': listing.starting_bid,
+                         'max_bid': max_bid, 'num_of_bids': num_of_bids,
+                         'category': listing.category,
+                         'user_id': listing.user.id}
         if user_is_winner is True:
 
             if listing.user.id == request.user.id:
@@ -58,20 +64,14 @@ def create_auction_dict(request, success_message=None, error_message=None,
             else:
                 user_is_owner = False
 
-            if user_is_owner:
+            if user_is_owner is False:
                 user_is_winner_message = "You are the winner of this auction."
-            else:
-                user_is_winner_message = None
+                returned_dict['user_is_winner_message'] = user_is_winner_message
+                listings_max_values.append(returned_dict)
         else:
             user_is_winner_message = None
-
-        listings_max_values.append({'id': listing.id, 'item_name': listing.item_name,
-                                    'image_url': listing.image_url, 'created_at': listing.created_at,
-                                    'starting_bid': listing.starting_bid,
-                                    'max_bid': max_bid, 'num_of_bids': num_of_bids,
-                                    'category': listing.category,
-                                    'user_is_winner_message': user_is_winner_message,
-                                    'user_id': listing.user.id})
+            returned_dict['user_is_winner_message'] = user_is_winner_message
+            listings_max_values.append(returned_dict)
 
     title = 'Active Listings'
 
