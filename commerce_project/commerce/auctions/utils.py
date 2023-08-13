@@ -45,28 +45,33 @@ def create_auction_dict(request, success_message=None, error_message=None,
 
         num_of_bids = listing.bids.count()
 
-        if only_wins is True:
-            user_auction_wins = AuctionWins.objects.filter(auction_id=listing.id, user_id=user.id)
-            if user_auction_wins is not None:
-                user_is_winner = True
-            else:
-                user_is_winner = False
-
-            if user_is_winner is True:
-                listings_max_values.append({'id': listing.id, 'item_name': listing.item_name, 'image_url': listing.image_url,
-                                            'created_at': listing.created_at, 'starting_bid': listing.starting_bid,
-                                            'max_bid': max_bid, 'num_of_bids': num_of_bids,
-                                            'category': listing.category,
-                                            'user_is_winner_message': "You are the winner of this auction.",
-                                            'user_id': listing.user.id})
+        user_auction_wins = AuctionWins.objects.filter(auction_id=listing.id, user_id=user.id)
+        if user_auction_wins is not None:
+            user_is_winner = True
         else:
-            listings_max_values.append(
-                {'id': listing.id, 'item_name': listing.item_name, 'image_url': listing.image_url,
-                 'created_at': listing.created_at, 'starting_bid': listing.starting_bid,
-                 'max_bid': max_bid, 'num_of_bids': num_of_bids,
-                 'category': listing.category,
-                 'user_is_winner_message': "You are the current winner of this auction. Keep it up!",
-                 'user_id': listing.user.id})
+            user_is_winner = False
+
+        if user_is_winner is True:
+
+            if listing.user.id == request.user.id:
+                user_is_owner = True
+            else:
+                user_is_owner = False
+
+            if user_is_owner:
+                user_is_winner_message = "You are the winner of this auction."
+            else:
+                user_is_winner_message = None
+        else:
+            user_is_winner_message = None
+
+        listings_max_values.append({'id': listing.id, 'item_name': listing.item_name,
+                                    'image_url': listing.image_url, 'created_at': listing.created_at,
+                                    'starting_bid': listing.starting_bid,
+                                    'max_bid': max_bid, 'num_of_bids': num_of_bids,
+                                    'category': listing.category,
+                                    'user_is_winner_message': user_is_winner_message,
+                                    'user_id': listing.user.id})
 
     title = 'Active Listings'
 

@@ -2,6 +2,7 @@ import datetime
 import time
 
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -77,6 +78,7 @@ def register(request):
         return render(request, "auctions/register.html")
 
 
+@login_required
 def new_listing(request):
     categories = Category.objects.all()
     if request.method == "GET":
@@ -117,6 +119,7 @@ def new_listing(request):
         return render(request, 'auctions/index.html', index_dict)
 
 
+@login_required
 def new_bid(request, active_listing_id, user_id):
     if request.method == 'POST':
         price = float(request.POST['bid_value'])
@@ -156,6 +159,7 @@ def new_bid(request, active_listing_id, user_id):
         return render(request, 'auctions/index.html', index_dict)
 
 
+@login_required
 def close_auction(request, active_listing_id):
 
     active_listing = AuctionListing.objects.get(id=active_listing_id)
@@ -173,6 +177,7 @@ def close_auction(request, active_listing_id):
     return render(request, 'auctions/index.html', index_dict)
 
 
+@login_required
 def bought_items(request):
 
     index_dict = utils.create_auction_dict(request, only_wins=True)
@@ -193,6 +198,7 @@ def listing_detail(request, listing_id):
     })
 
 
+@login_required
 def add_comment(request, listing_id, user_id):
     text = request.POST.get('text', False)
     found_user = User.objects.filter(id=user_id).first()
@@ -204,6 +210,7 @@ def add_comment(request, listing_id, user_id):
     return HttpResponseRedirect(reverse('listing_detail', args=(listing_id, )))
 
 
+@login_required
 def add_auction_to_watchlist(request, listing_id, user_id):
     listing_found = AuctionListing.objects.filter(id=listing_id).first()
     user_found = User.objects.filter(id=user_id).first()
@@ -214,6 +221,7 @@ def add_auction_to_watchlist(request, listing_id, user_id):
     return HttpResponseRedirect(reverse('index'))
 
 
+@login_required
 def watchlist(request):
     watchlist_all = WatchList.objects.all()
     return render(request, 'auctions/watchlist.html', {
@@ -221,6 +229,7 @@ def watchlist(request):
     })
 
 
+@login_required
 def remove_from_watchlist(request, listing_id):
     watchlist_to_delete = WatchList.objects.filter(auction_listing_id=listing_id).first()
     watchlist_to_delete.delete()
@@ -228,6 +237,7 @@ def remove_from_watchlist(request, listing_id):
     return HttpResponseRedirect(reverse('watchlist'))
 
 
+@login_required
 def category(request, category_id):
     auction_listing_with_give_category = AuctionListing.objects.filter(category_id=category_id)
     return render(request, 'auctions/category.html', {

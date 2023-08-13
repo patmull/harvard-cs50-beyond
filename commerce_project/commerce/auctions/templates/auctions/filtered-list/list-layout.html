@@ -1,0 +1,52 @@
+{% extends 'auctions/category.html' %}
+
+{% block list %}
+    {% if user %}
+        <h3><a href="{% url 'listing_detail' auction_listing.id %}">{{ auction_listing.item_name }}</a></h3>
+    {% else %}
+        <h3>{{ auction_listing.item_name }}</h3>
+    {% endif %}
+    <p>
+        <img src="{{ auction_listing.image_url }}" style="max-height: 300px; max-width: 300px" alt="Auction foto">
+    </p>
+    <p>Category:
+        <a href="{% url 'category' auction_listing.category.id %}">
+            {{ auction_listing.category.category_name }}
+        </a>
+    </p>
+    <p style="color:gray">Created at:{{ auction_listing.created_at }}</p>
+    <p style="color:dimgray">Closing on:{{ auction_listing.closed_on }}</p>
+    <p>Num of bids: {{ auction_listing.num_of_bids }}</p>
+
+    <p>Starting bid: {{ auction_listing.starting_bid }}</p>
+    {% if auction_listing.max_bid %}
+        <p>Max bid (so far): {{ auction_listing.max_bid }}</p>
+    {% else %}
+        <p>No bid yet. Be the first one!</p>
+    {% endif %}
+
+    {% if user %}
+        <form method="POST" action="{% url 'bid_for_listing' active_listing_id=auction_listing.id user_id=user.id %}">
+            {% csrf_token %}
+            <label>
+                Bid:
+                <input type="number" name="bid_value" placeholder="10.0">
+            </label>
+            <input type="submit" value="Bid">
+        </form>
+        {% if auction_listing.user_is_winner_message %}
+            <p style="color: green">{{ auction_listing.user_is_winner_message }}</p>
+        {% endif %}
+        {% if user.id == auction_listing.user_id %}
+            <form method="POST" action="{% url 'close_auction' active_listing_id=auction_listing.id %}">
+                {% csrf_token %}
+                Close the auction:
+                <input type="submit" value="Close">
+            </form>
+        {% endif %}
+        <form method="POST" action="{% url 'add_auction_to_watchlist' listing_id=auction_listing.id user_id=user.id %}">
+            {% csrf_token %}
+            <input type="submit" value="Add to watchlist">
+        </form>
+    {% endif %}
+{% endblock %}
