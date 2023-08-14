@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+  <h1 id="hello-headline-first">Hello!</h1>
+  <button id="sayHelloInRed" class='color-button' data-color="red">Tell me hello in red</button>
+  <button id="sayHelloInGreen" class='color-button' data-color="green">Tell me hello in green</button>
+  <button id="sayHelloInBlue" class='color-button' data-color="blue">Tell me hello in blue</button>
+
+  <h2 id="hello-headline-second">Hello!</h2>
+  <label>
+    <select id="color-dropdown">
+      <option value="red">Red</option>
+      <option value="green">Green</option>
+      <option value="blue">Blue</option>
+    </select>
+  </label>
+
+  <h2>To-Do app</h2>
+
+  <form id='todo-input-form' method='POST' action='/new-task'>
+    <label>
+      New task:
+      <input id='todo-task-input' type="text" name="todo_task_name" required>
+    </label>
+    <input id='todo-task-submit-button' type="submit" disabled>
+  </form>
+  <ul id="tasks-list"></ul>
+  <script>
+
+    document.querySelector('#todo-task-input').onfocus = function () {
+      document.querySelector('#todo-task-submit-button').removeAttribute('disabled');
+    }
+
+    document.querySelector('#todo-task-input').onkeyup = function () {
+      if (document.querySelector('#todo-task-input').value.length === 0)
+      {
+        document.querySelector('#todo-task-submit-button').setAttribute('disabled', '');
+      }  else if(document.querySelector('#todo-task-input').value.length > 0)
+      {
+        document.querySelector('#todo-task-submit-button').removeAttribute('disabled');
+      }
+    }
+
+    // Using buttons:
+    document.querySelectorAll('.color-button').forEach(function (element) {
+
+        element.onclick = function() {
+          document.querySelector('#hello-headline-first').style.color = element.dataset.color
+        }
+    })
+
+    // Using dropdown:
+    document.querySelector('#color-dropdown').onchange = function() {
+      document.querySelector('#hello-headline-second').style.color = this.value;
+    }
+
+    document.querySelector('#todo-input-form').onsubmit = function(event) {
+      const added_task = document.querySelector('#todo-task-input').value;
+
+      // Both of these will result in (literally): <li>Some user inputted text</li>
+      // document.querySelector("#tasks-list").append(`<li>${added_task}</li>`);
+      // document.querySelector("#tasks-list").append('<li>' + added_task + '</li>');
+
+      // How to actually append the li:
+
+      const new_li_element = document.createElement('li');
+      new_li_element.innerText = added_task;
+
+      document.querySelector("#tasks-list").append(new_li_element);
+
+      event.preventDefault(); // Also works: return false;
+
+      // UI improvements:
+
+      document.querySelector('#todo-task-input').value = '';
+
+    }
+
+  </script>
+</body>
+</html>
