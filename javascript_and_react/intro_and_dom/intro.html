@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Intro to JS and DOM</title>
+</head>
+<script>
+    // this does not work if HTML onclick=sayHello() attribute is removed from the "Click me" button
+
+    /*
+    function sayHello() {
+        // alert("Hello, world!");
+        document.querySelector('h1').innerText = 'Hello, user!';
+    }
+
+    document.querySelector('button').onclick = sayHello;
+    */
+
+    // It's recommended to move the JS code before closing </body> tag anyway, however to show how the DOM works,
+    // the second way is showed here:
+    function sayHello() {
+        // alert("Hello, world!");
+        document.querySelector('h1').innerText = 'Hello, user!';
+    }
+
+    /*
+    1st way of using a function inside addEventListener() method
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelector('h1').innerText = 'Hello, user!';
+    });
+
+    document.querySelector('button').onclick;
+    */
+
+    // 2nd way of using a function inside addEventListener() method
+    function sayHelloOnClickHandler() {
+        document.querySelector('button').onclick = sayHello;
+    }
+
+    document.addEventListener('DOMContentLoaded', sayHelloOnClickHandler);
+
+</script>
+<body>
+    <h1>Display hello</h1>
+    <button>Click me</button>
+    <br/>
+    <button id="sayHelloInRed">Tell me hello in red</button>
+    <button id="sayHelloInGreen">Tell me hello in green</button>
+    <button id="sayHelloInBlue">Tell me hello in blue</button>
+    <script>
+        // If we move the sayHello() function here, it works now (recommended)
+
+        function sayHelloInColor(color) {
+            if(color === "red")
+            {
+                document.querySelector('h1').style.color = '#FF0000';
+            } else if (color === "green")
+            {
+                document.querySelector('h1').style.color = '#00ff00';
+            } else if (color === "blue")
+            {
+                document.querySelector('h1').style.color = '#0000ff';
+            } else {
+                alert("This color is not valid.");
+            }
+
+        }
+        // This is wrong!
+        // document.querySelector('#sayHelloInRed').onclick = sayHelloInColor('red');
+
+        // This is how to do this:
+        document.querySelector('#sayHelloInRed').onclick = function() {
+            sayHelloInColor('red');
+        }
+        document.querySelector('#sayHelloInGreen').onclick = function() {
+            sayHelloInColor('green');
+        }
+        document.querySelector('#sayHelloInBlue').onclick = function () {
+            sayHelloInColor('blue');
+        }
+    </script>
+</body>
+</html>
