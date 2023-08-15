@@ -9,12 +9,17 @@
         @keyframes hide-post {
             0% {
                 opacity: 1;
+                /* Smooth slide of the rest of the page after the removal of the post element */
+                line-height: 100%;
+                /* height: 100%; */
             }
             50% {
                 opacity: 0.75;
             }
             100% {
                 opacity: 0;
+                line-height: 0px;
+                height: 0px;
             }
         }
 
@@ -100,6 +105,7 @@
                  */
 
                 /* Better solution: */
+                /*
                 const seconds_delay = getComputedStyle(element.parentNode).animationDuration.split('s')[0];
                 const delay_additional = parseInt(seconds_delay)*1000 + 100;
                 console.log(parseInt(seconds_delay));
@@ -107,8 +113,13 @@
                     element.parentNode.remove();
                 }, delay_additional);
 
+                 */
+
                 /* Even better solution: */
                 // TODO
+                document.addEventListener('animationend', function() {
+                    element.parentNode.remove();
+                })
             }
         }
 
