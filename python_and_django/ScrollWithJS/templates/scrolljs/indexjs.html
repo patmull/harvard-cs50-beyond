@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Never Ending Scrolling Page</title>
+</head>
+<body>
+    <style>
+        @keyframes hide-post {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.75;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .post {
+            background-color: #FFFDD0;
+            animation-name: hide-post;
+            /* These animations are tied with the hide-post name */
+            animation-duration: 2s;
+            animation-fill-mode: forwards; /* This will not result in zero opacity to full opacity,
+            because the animation is still the mechanism that handles the animation, but it will
+            revert the initial state after the animation. */
+            animation-play-state: paused; /*  This needs to be here, otherwise it will result in immediate hide of the posts */
+        }
+    </style>
+    <h1>Never Ending Scrolling Page</h1>
+    <div id="posts">
+    </div>
+    <script>
+        let counter = 1;
+        // number_of_loaded_posts_at_a_time
+        const load_posts_at_once = 20;
+
+        document.addEventListener('DOMContentLoaded', load);
+        document.addEventListener('click', hide);
+
+        function add_post(data) {
+            const new_post_div = document.createElement('div');
+            new_post_div.innerText = data;
+            new_post_div.className = 'post';
+            new_post_div.style.height = '150px';
+            new_post_div.style.width = '100%';
+            new_post_div.style.borderTop = '5px solid white';
+            new_post_div.style.borderBottom = '5px solid white';
+
+            const new_button = document.createElement('button');
+            new_button.innerText = "Hide this post";
+            new_button.style.float = 'right';
+            new_post_div.append(new_button);
+
+            document.querySelector('#posts').append(new_post_div);
+        }
+
+        function load() {
+            const start = counter;
+            const end = start + load_posts_at_once - 1;
+            counter = end + 1;
+
+            fetch(`/posts?start=${start}&end=${end}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.posts.forEach(add_post);
+                })
+        }
+
+        window.onscroll = () => setTimeout(function() {
+            if(window.innerHeight + window.scrollY >= document.body.offsetHeight)
+            {
+                load();
+            }
+        }, 1000);
+
+        // What if we don't want to use selector for selecting button (event listener defined at the top of the page)
+        function hide(event)
+        {
+            const element = event.target; // = "Give me an element that is targeted"
+            console.log(element.innerText);
+            if (element.tagName === 'BUTTON' && element.innerText === "Hide this post")
+            {
+                // This only hides the element:
+                // element.parentNode.style.visibility = 'hidden';
+
+                // "Brute-force" removal using the immediate removal by the .remove() function
+                // element.parentNode.remove();
+
+                // Using animation
+                element.parentNode.style.animationPlayState = 'running';
+
+                /*
+                setTimeout(function() {
+                    element.parentNode.remove();
+                }, 2100);
+
+                 */
+
+                /* Better solution: */
+                const seconds_delay = getComputedStyle(element.parentNode).animationDuration.split('s')[0];
+                const delay_additional = parseInt(seconds_delay)*1000 + 100;
+                console.log(parseInt(seconds_delay));
+                                setTimeout(function() {
+                    element.parentNode.remove();
+                }, delay_additional);
+
+                /* Even better solution: */
+                // TODO
+            }
+        }
+
+    </script>
+</body>
+</html>
