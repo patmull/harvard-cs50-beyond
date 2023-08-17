@@ -29,13 +29,42 @@
 
             function updateResponse(event)
             {
+                // or setNum1(num1) if using the 1st way
+                // setResponse(event.target.value) if using the 1st way
+
+                /*
                 setState({
                     num1: state.num1,
                     num2: state.num2,
                     response: event.target.value
                 });
-                // or setNum1(num1) if using the 1st way
-                // setResponse(event.target.value) if using the 1st way
+                 */
+
+                // 3rd way using the spread JS operator
+                setState({
+                    ...state, // ignore these parts
+                    response: event.target.value // override this
+                });
+            }
+
+            function inputKeyPress(event)
+            {
+                if (event.key === "Enter")
+                {
+                    const answer = parseInt(state.response);
+                    if(state.num1 + state.num2 === answer)
+                    {
+                        setState({
+                            ...state,
+                            score: state.score + 1
+                        });
+                    } else {
+                        setState({
+                            ...state,
+                            score: state.score - 1
+                        })
+                    }
+                }
             }
 
             // or just num1 if 1st way used:
