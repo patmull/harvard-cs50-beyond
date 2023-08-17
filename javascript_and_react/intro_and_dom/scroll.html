@@ -2,9 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Scroll Demonstration</title>
 </head>
 <body>
+    <ul id="sample-list">
+    </ul>
+<script>
+    const N_OF_LI = 100;
+    const SAMPLE_LIST = document.querySelector('#sample-list');
+    for(let i = 0; i <= N_OF_LI; i++)
+    {
+        let new_li = document.createElement('li');
+        new_li.innerText = `${i}`;
+        SAMPLE_LIST.append(new_li);
+    }
 
+    window.onscroll = () => {
+        // window = what user already seen
+        // document = contains also the parts that are not yet visible
+        // What user sees (the frame of window) + what user already scrolled (out of window at the top) <=
+        if((window.innerHeight + window.scrollY) >= document.body.offsetHeight)
+        {
+            document.querySelector('body').style.background = 'darkgreen';
+        } else {
+            document.querySelector('body').style.background = 'white';
+        }
+    }
+
+</script>
 </body>
 </html>

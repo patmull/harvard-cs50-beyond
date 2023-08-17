@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Intro to React</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script type="text/babel">
+        function HelloAdelle() {
+            return (<div>Hello, from the other side!</div>);
+        }
+
+        function Hello
+
+        function App() {
+            const a = 5;
+            const b = 6;
+            return (
+                <div>
+                    <p>
+                        Hello!
+                    </p>
+                    <p>
+                        a * b = {a * b}
+                    </p>
+                    <HelloAdelle/>
+                    <HelloAdelle/>
+                    <HelloAdelle/>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App/>, document.querySelector("#app"))
+    </script>
+</body>
+</html>
