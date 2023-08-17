@@ -6,6 +6,16 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        .incorrect-answer {
+            color: red;
+        }
+
+        #winner-text {
+             color: green;
+             font-size: 40px;
+         }
+    </style>
 </head>
 <body>
     <div id="app"></div>
@@ -25,7 +35,8 @@
                num1: 1,
                num2: 2,
                score: 0,
-               response: ""
+               response: "",
+               incorrect: false
             });
 
             function updateResponse(event)
@@ -56,24 +67,37 @@
                     if(state.num1 + state.num2 === answer)
                     {
                         setState({
-                            ...state,
-                            score: state.score + 1
+                            num1: Math.ceil(Math.random() * 100),
+                            num2: Math.ceil(Math.random() * 100),
+                            score: state.score + 1,
+                            incorrect: false
                         });
                     } else {
                         setState({
                             ...state,
-                            score: state.score - 1
+                            score: state.score - 1,
+                            // Erasing the answer if it is wrong. This will work because response is tied into the
+                            // value=state.response attribute,
+                            response: "",
+                            incorrect: true
                         });
                     }
+
                 }
+            }
+            if (state.score === 2)
+            {
+                return(
+                    <div id="winner-text">Congratulation, you are winner!</div>
+                );
             }
 
             // or just num1 if 1st way used:
             return (
                 <div>
                     <div>{state.num1} + {state.num2}</div>
-                    <input onKeyPress={inputKeyPress} onChange={updateResponse} value={state.response}/>
-                    <div>Score: {state.score}</div>
+                    <input autoFocus={true} onKeyPress={inputKeyPress} onChange={updateResponse} value={state.response}/>
+                    <div className={state.incorrect ? "incorrect-answer": ""}>Score: {state.score}</div>
                 </div>
             );
         }
