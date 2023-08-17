@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demonstration of the use of React.setState() function</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script type="text/babel">
+        // Coming from the last tutorial...
+        function App() {
+            /*
+            // 1st way:
+            const [num1, setNum1] = React.useState(1);
+            const [num2, setNum2] = React.useState(2);
+            const [response, setResponse] = React.useState("");
+             */
+
+            // (Possibly) Better way:
+            const [state, setState] = React.useState({
+               num1: 1,
+               num2: 2,
+               response: ""
+            });
+
+            function updateResponse(event)
+            {
+                setState({
+                    num1: state.num1,
+                    num2: state.num2,
+                    response: event.target.value
+                });
+                // or setNum1(num1) if using the 1st way
+                // setResponse(event.target.value) if using the 1st way
+            }
+
+            // or just num1 if 1st way used:
+            return (
+                <div>
+                    <div>{state.num1} + {state.num2}</div>
+                    <input onChange={updateResponse} value={state.response}/>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App/>, document.querySelector('#app'));
+    </script>
+</body>
+</html>

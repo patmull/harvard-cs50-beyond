@@ -11,15 +11,34 @@
     <div id="app"></div>
 
     <script type="text/babel">
+
         function HelloAdelle() {
             return (<div>Hello, from the other side!</div>);
         }
 
-        function Hello
+        function HelloLyrics(props) {
+            return (
+                // CAUTION! You cannot write any code you like here! It needs to be properly enclosed.
+                // Multiple elements does not work!
+                <div>Hello, {props.lyrics} <br/>in song by {props.artist}</div>
+            );
+        }
+
+        function Count() {
+
+        }
 
         function App() {
             const a = 5;
             const b = 6;
+
+            const[count, setCount] = React.useState(0);
+
+            function updateCount() {
+                setCount(count + 1);
+            }
+
+            // Warning! When calling function using {} notation, call updateCount, not updateCount()
             return (
                 <div>
                     <p>
@@ -29,8 +48,17 @@
                         a * b = {a * b}
                     </p>
                     <HelloAdelle/>
-                    <HelloAdelle/>
-                    <HelloAdelle/>
+                    <p>
+                        Some of the lyrics of the famous songs called "Hello" are:
+                        <HelloLyrics lyrics="from the other side" artist="Adelle"/>
+                        <HelloLyrics lyrics="it's good to be back, it's good to back" artist="Oasis"/>
+                        <HelloLyrics lyrics="is it me you're looking for?" artist="Lionel Ritchie"/>
+                    </p>
+                    <p>
+                        <h2>Counter:</h2>
+                        <div>{count}</div>
+                        <button onClick={updateCount}>Click</button>
+                    </p>
                 </div>
             );
         }
