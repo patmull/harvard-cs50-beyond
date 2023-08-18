@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#compose').addEventListener('click', compose_email);
 
   // Later created elements: This cannot contain class name, because it does not exist the page (DOM) load!
-  document.addEventListener('click', (event) => fetch_email_detail(event));
+  document.addEventListener('click', (event) => load_email_detail(event));
 
   // By default, load the inbox
   load_mailbox('inbox');
@@ -73,8 +73,7 @@ function load_mailbox(mailbox) {
   });
 }
 
-
-function fetch_email_detail(event)
+function load_email_detail(event)
 {
   event.preventDefault();
   const target_link = event.target.closest('.email-link');
@@ -83,11 +82,33 @@ function fetch_email_detail(event)
   const email_id = target_link.href.split('/emails/')[1];
   console.log('email_id:');
   console.log(email_id);
-  fetch(`emails/${email_id}`)
+  const email_detail = fetch_email_detail(email_id);
+
+  email_detail.then(loaded_email => {
+    // Access the resolved value (array of emails)
+
+
+    // Access individual email objects
+    //
+    if (!(Object.keys(loaded_email).length === 0)) {
+      // loaded_email.forEach(loaded_email);
+      console.log("Loaded e-mail passed the check:");
+      console.log(loaded_email);
+    }
+  }).catch(error => {
+    // NOTICE: We can send also a console.error to the console
+    console.error("An error occurred:", error);
+  });
+
+}
+
+function fetch_email_detail(email_id)
+{
+  return fetch(`emails/${email_id}`)
       .then(response => response.json())
       .then(email => {
         console.log(email);
-        // return email;
+        return email;
       })
       .catch(error => {
         console.log(`An error had occurred: ${error}`);
@@ -106,5 +127,11 @@ function fetch_email_api(mailbox)
       // ... do something else with emails ...
     return emails;
   });
+
+}
+
+function display_email_detail(email_from)
+{
+  document.querySelector('h3').innerText = `E-mail from: ${email_from}`;
 
 }
