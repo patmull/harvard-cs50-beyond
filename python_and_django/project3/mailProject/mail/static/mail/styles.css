@@ -1,3 +1,19 @@
 textarea {
     min-height: 400px;
 }
+
+.mail-list-item {
+    border-style: solid !important;
+    border-width: 2px !important;
+    padding: 15px !important;
+}
+
+.right-align {
+    float: right !important;
+    color: darkgrey !important;
+}
+
+.email-link {
+    text-underline: none !important;
+    color: black !important;
+}
