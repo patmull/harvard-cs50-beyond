@@ -13,7 +13,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // By default, load the inbox
   load_mailbox('inbox');
+
+  document.querySelector('#compose-form').addEventListener('submit',
+      (event) => send_email(event));
 });
+
+function send_email(event) {
+  event.preventDefault();
+
+  const recipients_value = document.querySelector('#compose-recipients').value;
+  const subject_value = document.querySelector('#compose-subject').value;
+  const body_value = document.querySelector('#compose-body').value;
+
+  console.log("Send data by e-mail:");
+  console.log(recipients_value);
+  console.log(body_value);
+
+
+  const new_email_request_data = JSON.stringify({
+    'recipients': recipients_value,
+    'subject': subject_value,
+    'body': body_value
+  });
+
+  console.log("new_email_request_data:");
+  console.log(new_email_request_data);
+
+  fetch('/emails', {
+    method: 'POST',
+    body: new_email_request_data
+  })
+      .then(response => response.json())
+      .then(result => {
+        console.log("E-mail send result:");
+        console.log(result);
+
+        if (result.message === "Email sent successfully.")
+        {
+          console.log("Email sent successfully!");
+          load_mailbox('sent',"Message sent successfully!");
+        }
+      });
+}
 
 function array_to_string(array_to_convert)
 {
@@ -32,7 +73,8 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 }
 
-function load_mailbox(mailbox) {
+function load_mailbox(mailbox, message="") {
+  console.log(`Loading ${mailbox}...`);
   
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
@@ -41,6 +83,13 @@ function load_mailbox(mailbox) {
   // Show the mailbox name
   document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
+  if(message.length > 0)
+  {
+    const new_message = document.createElement('div');
+    new_message.className = "alert alert-success";
+    new_message.innerText = message;
+    document.querySelector('#emails-view').appendChild(new_message);
+  }
   function append_email(email) {
     const new_email_link = document.createElement('a');
     const new_div = document.createElement('div');
@@ -121,16 +170,18 @@ function removeChildElements(element)
 
 function create_email_detail(email)
 {
+  const email_view = document.querySelector('#emails-view');
   function create_email_header_info_item(info_type, info_text)
   {
     const email_header_info = document.createElement('div');
     const email_header_info_type = document.createElement('span');
 
-    email_header_info.innerText = `${info_text}`;
     email_header_info_type.innerText = `${info_type}: `;
     email_header_info_type.className = 'email-info-label';
-
+    // Prepending:
     email_header_info.appendChild(email_header_info_type);
+    // NOTICE: For the prepending, this order is crucial!!!
+    email_header_info.appendChild(document.createTextNode(info_text))
 
     return email_header_info;
   }
@@ -143,8 +194,7 @@ function create_email_detail(email)
 
   const reply_button = document.createElement('button');
   reply_button.innerText = 'Reply';
-
-  const email_view = document.querySelector('#emails-view');
+  reply_button.className = 'btn btn-sm btn-outline-primary';
 
   // clearing the email_view
   email_view.replaceChildren();
@@ -158,6 +208,7 @@ function create_email_detail(email)
   email_view.appendChild(to_email_header_info);
   email_view.appendChild(subject_email_header_info);
   email_view.appendChild(timestamp_email_header_info);
+  email_view.appendChild(reply_button);
   email_view.appendChild(separating_line);
   email_view.appendChild(email_text_element);
 
@@ -191,8 +242,8 @@ function fetch_email_api(mailbox)
 
 }
 
+
 function display_email_detail(email_from)
 {
   document.querySelector('h3').innerText = `E-mail from: ${email_from}`;
-
 }
