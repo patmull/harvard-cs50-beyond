@@ -17,3 +17,7 @@ textarea {
     text-underline: none !important;
     color: black !important;
 }
+
+.email-info-label {
+    font-weight: bold !important;
+}
