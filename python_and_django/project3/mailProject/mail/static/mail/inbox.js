@@ -101,6 +101,12 @@ function load_mailbox(mailbox, message="") {
     new_div.innerText = `${email.sender}: ${email.subject}`;
     new_div.className = 'mail-list-item';
 
+    // If e-mail is read
+    if (email.read)
+    {
+      new_div.className += ' ' + 'mail-list-item-read';
+    }
+
     date_span.innerText = `${email.timestamp}`;
     date_span.className = 'right-align';
 
@@ -153,6 +159,9 @@ function load_email_detail(event)
       console.log(loaded_email);
 
       create_email_detail(loaded_email);
+
+      // Send to API that e-mail was read
+      put_email_read(email_id);
     }
   }).catch(error => {
     // NOTICE: We can send also a console.error to the console
@@ -160,6 +169,8 @@ function load_email_detail(event)
   });
 
 }
+
+
 
 function removeChildElements(element)
 {
@@ -230,7 +241,7 @@ function fetch_email_detail(email_id)
 function fetch_email_api(mailbox)
 {
   console.log("Fetching e-mail...");
-  return fetch('/emails/' + mailbox)
+  return fetch(`/emails/${mailbox}`)
   .then(response => response.json())
   .then(emails => {
       // Print emails
@@ -242,8 +253,13 @@ function fetch_email_api(mailbox)
 
 }
 
-
-function display_email_detail(email_from)
+function put_email_read(email_id)
 {
-  document.querySelector('h3').innerText = `E-mail from: ${email_from}`;
+  fetch(`emails/${email_id}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      read: true
+    })
+  })
+      .then(response => console.log(`Sent e-mail as read: ${response.json()}`));
 }

@@ -8,6 +8,10 @@ textarea {
     padding: 15px !important;
 }
 
+.mail-list-item-read {
+    color: grey;
+}
+
 .right-align {
     float: right !important;
     color: darkgrey !important;
