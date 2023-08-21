@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
 
-  document.querySelector('#compose').addEventListener('click', compose_email);
+  document.querySelector('#compose')
+      .addEventListener('click', () => compose_email('', '', ''));
 
   // Later created elements: This cannot contain class name, because it does not exist the page (DOM) load!
   document.getElementById('emails-view')
@@ -18,6 +19,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelector('#compose-form').addEventListener('submit',
       (event) => send_email(event));
+
 });
 
 function click_handler(event)
@@ -31,6 +33,30 @@ function click_handler(event)
     // make e-mail not archived
     console.log("Archiving e-mail...");
     archive_email(event, true);
+  } else if(event.target.className.includes('reply-button')) {
+    const email_id = event.target.form.input_email_id.value;
+    const email_detail = fetch_email_detail(email_id);
+
+    email_detail.then(loaded_email => {
+    // Access the resolved value (array of emails)
+
+      // Access individual email objects
+      if (!(Object.keys(loaded_email).length === 0)) {
+        // loaded_email.forEach(loaded_email);
+        console.log("E-mail loaded succesfully.");
+        console.log(loaded_email);
+
+        let reply_text = "\n-----------------------------------------\n";
+        reply_text += `On Jan 1 2020, 12:00 AM foo@example.com wrote: ${loaded_email.body}`;
+
+        // Send to API that e-mail was read
+        compose_email(loaded_email.recipients, loaded_email.subject, reply_text);
+      }
+    }).catch(error => {
+      // NOTICE: We can send also a console.error to the console
+      console.error(error.toString());
+    });
+
   } else {
     // load_email_detail
     console.log("Loading e-mail detail...");
@@ -99,16 +125,16 @@ function array_to_string(array_to_convert)
   return array_to_convert.toString();
 }
 
-function compose_email() {
+function compose_email(recipients, subject, body) {
 
   // Show compose view and hide other views
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
   // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  document.querySelector('#compose-recipients').value = recipients;
+  document.querySelector('#compose-subject').value = subject;
+  document.querySelector('#compose-body').value = body;
 }
 
 function create_mailbox_items(new_div, email, archive_section=false)
@@ -285,9 +311,19 @@ function create_email_detail(email)
   const subject_email_header_info = create_email_header_info_item('Subject', email.subject);
   const timestamp_email_header_info = create_email_header_info_item('Timestamp', email.timestamp);
 
-  const reply_button = document.createElement('button');
-  reply_button.innerText = 'Reply';
-  reply_button.className = SMALL_BUTTON;
+  const reply_form = document.createElement('form');
+  reply_form.id = 'reply-form';
+  const reply_button = document.createElement('input');
+  reply_button.value = 'Reply';
+  reply_button.className = 'reply-button';
+  reply_button.className += " " + SMALL_BUTTON;
+  const email_id_input = document.createElement('input');
+  email_id_input.id = 'input-email-id';
+  email_id_input.name = 'input_email_id';
+  email_id_input.value = email.id;
+  email_id_input.type = 'hidden';
+
+  reply_form.append(reply_button, email_id_input);
 
   // clearing the email_view
   email_view.replaceChildren();
@@ -301,7 +337,7 @@ function create_email_detail(email)
   email_view.appendChild(to_email_header_info);
   email_view.appendChild(subject_email_header_info);
   email_view.appendChild(timestamp_email_header_info);
-  email_view.appendChild(reply_button);
+  email_view.appendChild(reply_form);
   email_view.appendChild(separating_line);
   email_view.appendChild(email_text_element);
 
