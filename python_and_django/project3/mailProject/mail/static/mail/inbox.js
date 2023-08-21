@@ -98,13 +98,22 @@ function load_mailbox(mailbox, message="") {
     new_email_link.href = `/emails/${email.id}`;
     new_email_link.className = 'email-link';
 
-    new_div.innerText = `${email.sender}: ${email.subject}`;
     new_div.className = 'mail-list-item';
 
-    // If e-mail is read
-    if (email.read)
+    if(mailbox === 'inbox')
     {
-      new_div.className += ' ' + 'mail-list-item-read';
+      new_div.innerText = `${email.sender}: ${email.subject}`;
+      // If e-mail is read
+      if (email.read)
+      {
+        new_div.className += ' ' + 'mail-list-item-read';
+      }
+    } else if (mailbox === 'sent')
+    {
+      const email_recipients = email.recipients.toString();
+      new_div.innerText = `${email_recipients}: ${email.subject}`;
+    } else {
+      new_div.innerText = `${email.sender}: ${email.subject}`;
     }
 
     date_span.innerText = `${email.timestamp}`;
