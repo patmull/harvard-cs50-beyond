@@ -1,4 +1,6 @@
 
+const SMALL_BUTTON = "btn btn-sm btn-outline-primary";
+
 document.addEventListener('DOMContentLoaded', function() {
   // Use buttons to toggle between views
   document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
@@ -6,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
 
   document.querySelector('#compose').addEventListener('click', compose_email);
+
+  document.querySelector('.archive-mail-form')
+      .addEventListener('submit', (event) => archive_email(event));
 
   // Later created elements: This cannot contain class name, because it does not exist the page (DOM) load!
   document.getElementById('emails-view')
@@ -28,7 +33,6 @@ function send_email(event) {
   console.log("Send data by e-mail:");
   console.log(recipients_value);
   console.log(body_value);
-
 
   const new_email_request_data = JSON.stringify({
     'recipients': recipients_value,
@@ -54,6 +58,11 @@ function send_email(event) {
           load_mailbox('sent',"Message sent successfully!");
         }
       });
+}
+
+function archive_email(event)
+{
+
 }
 
 function array_to_string(array_to_convert)
@@ -108,6 +117,23 @@ function load_mailbox(mailbox, message="") {
       {
         new_div.className += ' ' + 'mail-list-item-read';
       }
+      const archive_button_form = document.createElement('form');
+      archive_button_form.method = 'PUT';
+      archive_button_form.className = 'archive-mail-form';
+      archive_button_form.className += " " + 'inline';
+      const archive_input_button = document.createElement('input');
+      archive_input_button.type = 'submit';
+      archive_input_button.className = 'archive-button';
+      archive_input_button.className += " " + SMALL_BUTTON;
+      archive_input_button.className += " " + "ml-2 float-right";
+      archive_input_button.innerText = "Archive";
+      const archive_input_id = document.createElement('input');
+      archive_input_id.type = 'hidden';
+      archive_input_id.name = 'archived_email_id';
+      archive_input_id.value = email.id;
+      archive_button_form.appendChild(archive_input_button);
+      archive_button_form.appendChild(archive_input_id);
+      new_div.appendChild(archive_button_form);
     } else if (mailbox === 'sent')
     {
       const email_recipients = email.recipients.toString();
@@ -214,7 +240,7 @@ function create_email_detail(email)
 
   const reply_button = document.createElement('button');
   reply_button.innerText = 'Reply';
-  reply_button.className = 'btn btn-sm btn-outline-primary';
+  reply_button.className = SMALL_BUTTON;
 
   // clearing the email_view
   email_view.replaceChildren();

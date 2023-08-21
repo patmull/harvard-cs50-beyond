@@ -25,3 +25,7 @@ textarea {
 .email-info-label {
     font-weight: bold !important;
 }
+
+.inline {
+    display: inline !important;
+}
