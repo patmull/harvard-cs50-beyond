@@ -27,11 +27,15 @@ function click_handler(event)
     // archive_email
     console.log("Archiving e-mail...");
     archive_email(event);
+  } else if(event.target.className.includes('make-non-archived-button')) {
+    // make e-mail not archived
+    console.log("Archiving e-mail...");
+    archive_email(event, true);
+  } else {
+    // load_email_detail
+    console.log("Loading e-mail detail...");
+    load_email_detail(event);
   }
-
-  // load_email_detail
-  console.log("Loading e-mail detail...");
-  load_email_detail(event);
 }
 
 function send_email(event) {
@@ -71,7 +75,7 @@ function send_email(event) {
       });
 }
 
-function archive_email(event)
+function archive_email(event, unarchive=false)
 {
   event.preventDefault();
   console.log("event.target.form.archived_email_id:");
@@ -79,9 +83,15 @@ function archive_email(event)
   const email_id = event.target.form.archived_email_id.value;
   console.log("Email id for archive:");
   console.log(email_id);
-  put_email_action(email_id, 'archived');
 
-  load_mailbox('inbox',"E-mail successfully archived!");
+  if(unarchive === true)
+  {
+    put_email_action(email_id, 'unarchive');
+    load_mailbox('inbox',"E-mail successfully removed from archived!");
+  } else {
+    put_email_action(email_id, 'archive');
+    load_mailbox('inbox',"E-mail successfully archived!");
+  }
 }
 
 function array_to_string(array_to_convert)
@@ -99,6 +109,38 @@ function compose_email() {
   document.querySelector('#compose-recipients').value = '';
   document.querySelector('#compose-subject').value = '';
   document.querySelector('#compose-body').value = '';
+}
+
+function create_mailbox_items(new_div, email, archive_section=false)
+{
+  const archive_button_form = document.createElement('form');
+  archive_button_form.method = 'PUT';
+  archive_button_form.className = 'archive-mail-form';
+  archive_button_form.className += " " + 'inline';
+  const archive_input_button = document.createElement('input');
+  archive_input_button.type = 'submit';
+
+  if(!archive_section)
+  {
+    archive_input_button.value = "Archive";
+    archive_input_button.className = 'archive-button';
+  } else
+  {
+    archive_input_button.value = "Unarchive";
+    archive_input_button.className = 'make-non-archived-button';
+  }
+
+  archive_input_button.className += " " + SMALL_BUTTON;
+  archive_input_button.className += " " + "ml-2 float-right";
+
+  const archive_input_id = document.createElement('input');
+  archive_input_id.type = 'hidden';
+  archive_input_id.className = 'current-email-id';
+  archive_input_id.name = 'archived_email_id';
+  archive_input_id.value = email.id;
+  archive_button_form.appendChild(archive_input_button);
+  archive_button_form.appendChild(archive_input_id);
+  new_div.appendChild(archive_button_form);
 }
 
 function load_mailbox(mailbox, message="") {
@@ -119,7 +161,6 @@ function load_mailbox(mailbox, message="") {
     document.querySelector('#emails-view').appendChild(new_message);
   }
   function append_email(email) {
-
       const new_email_link = document.createElement('a');
       const new_div = document.createElement('div');
       const div_link = document.createElement('div');
@@ -141,25 +182,8 @@ function load_mailbox(mailbox, message="") {
             div_link.className += ' ' + 'mail-list-item-read';
             new_div.className += ' ' + 'mail-list-item-read';
           }
-          const archive_button_form = document.createElement('form');
-          archive_button_form.method = 'PUT';
-          archive_button_form.className = 'archive-mail-form';
-          archive_button_form.className += " " + 'inline';
-          const archive_input_button = document.createElement('input');
-          archive_input_button.type = 'submit';
-          archive_input_button.className = 'archive-button';
-          archive_input_button.className += " " + SMALL_BUTTON;
-          archive_input_button.className += " " + "ml-2 float-right";
-          archive_input_button.value = "Archive";
-          const archive_input_id = document.createElement('input');
-          archive_input_id.type = 'hidden';
-          archive_input_id.className = 'current-email-id';
-          archive_input_id.name = 'archived_email_id';
-          archive_input_id.value = email.id;
-          archive_button_form.appendChild(archive_input_button);
-          archive_button_form.appendChild(archive_input_id);
-          new_div.appendChild(archive_button_form);
         }
+        create_mailbox_items(new_div, email);
       } else if (mailbox === 'sent')
       {
         if(email.archived)
@@ -167,8 +191,14 @@ function load_mailbox(mailbox, message="") {
           const email_recipients = email.recipients.toString();
           div_link.innerText = `${email_recipients}: ${email.subject}`;
         }
-      } else {
+        create_mailbox_items(new_div, email)
+      } else if (mailbox === 'archive')
+      {
         div_link.innerText = `${email.sender}: ${email.subject}`;
+        create_mailbox_items(new_div, email, true);
+      }
+      else {
+        console.error("This option for inbox is not valid.");
       }
 
       date_span.innerText = `${email.timestamp}`;
@@ -195,7 +225,7 @@ function load_mailbox(mailbox, message="") {
         loaded_emails.forEach(append_email);
       }
     }).catch(error => {
-      console.error("An error occurred:", error);
+      console.error(error.toString());
     });
 
 }
@@ -211,8 +241,6 @@ function load_email_detail(event)
   console.log('email_id:');
   console.log(email_id);
   const email_detail = fetch_email_detail(email_id);
-
-  const emails_view = document.querySelector('#emails-view');
 
   email_detail.then(loaded_email => {
     // Access the resolved value (array of emails)
@@ -231,16 +259,9 @@ function load_email_detail(event)
     }
   }).catch(error => {
     // NOTICE: We can send also a console.error to the console
-    console.error("An error occurred:", error);
+    console.error(error.toString());
   });
 
-}
-
-function removeChildElements(element)
-{
-  console.log("Removed element:");
-  console.log(element);
-  element.remove();
 }
 
 function create_email_detail(email)
@@ -320,9 +341,17 @@ function fetch_email_api(mailbox)
 function put_email_action(email_id, action)
 {
   const request_body = {};
-  if (action === 'read' || action === 'archived')
+  if (action === 'read' || action === 'archive' || action === 'unarchive')
   {
-    request_body[action] = true;
+    if(action === 'archive')
+    {
+      request_body['archived'] = true;
+    } else if (action === 'unarchive') {
+      request_body['archived'] = false;
+    } else {
+      request_body[action] = true;
+    }
+
    fetch(`emails/${email_id}`, {
     method: 'PUT',
     body: JSON.stringify(request_body)
