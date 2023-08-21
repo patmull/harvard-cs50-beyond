@@ -9,12 +9,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   document.querySelector('#compose').addEventListener('click', compose_email);
 
-  document.querySelector('.archive-mail-form')
-      .addEventListener('submit', (event) => archive_email(event));
-
   // Later created elements: This cannot contain class name, because it does not exist the page (DOM) load!
   document.getElementById('emails-view')
-      .addEventListener('click', (event) => load_email_detail(event));
+      .addEventListener('click', (event) => click_handler(event));
 
   // By default, load the inbox
   load_mailbox('inbox');
@@ -22,6 +19,20 @@ document.addEventListener('DOMContentLoaded', function() {
   document.querySelector('#compose-form').addEventListener('submit',
       (event) => send_email(event));
 });
+
+function click_handler(event)
+{
+  if(event.target.className.includes('archive-button'))
+  {
+    // archive_email
+    console.log("Archiving e-mail...");
+    archive_email(event);
+  }
+
+  // load_email_detail
+  console.log("Loading e-mail detail...");
+  load_email_detail(event);
+}
 
 function send_email(event) {
   event.preventDefault();
@@ -62,7 +73,15 @@ function send_email(event) {
 
 function archive_email(event)
 {
+  event.preventDefault();
+  console.log("event.target.form.archived_email_id:");
+  console.log(event.target.form.archived_email_id);
+  const email_id = event.target.form.archived_email_id.value;
+  console.log("Email id for archive:");
+  console.log(email_id);
+  put_email_action(email_id, 'archived');
 
+  load_mailbox('inbox',"E-mail successfully archived!");
 }
 
 function array_to_string(array_to_convert)
@@ -100,73 +119,85 @@ function load_mailbox(mailbox, message="") {
     document.querySelector('#emails-view').appendChild(new_message);
   }
   function append_email(email) {
-    const new_email_link = document.createElement('a');
-    const new_div = document.createElement('div');
-    const date_span = document.createElement('span');
 
-    new_email_link.href = `/emails/${email.id}`;
-    new_email_link.className = 'email-link';
+      const new_email_link = document.createElement('a');
+      const new_div = document.createElement('div');
+      const div_link = document.createElement('div');
+      const date_span = document.createElement('span');
 
-    new_div.className = 'mail-list-item';
+      new_email_link.href = `/emails/${email.id}`;
+      new_email_link.className = 'email-link';
 
-    if(mailbox === 'inbox')
-    {
-      new_div.innerText = `${email.sender}: ${email.subject}`;
-      // If e-mail is read
-      if (email.read)
+      new_div.className = 'mail-list-item';
+
+      if(mailbox === 'inbox')
       {
-        new_div.className += ' ' + 'mail-list-item-read';
+        if(!email.archived)
+        {
+          div_link.innerText = `${email.sender}: ${email.subject}`;
+          // If e-mail is read
+          if (email.read)
+          {
+            div_link.className += ' ' + 'mail-list-item-read';
+            new_div.className += ' ' + 'mail-list-item-read';
+          }
+          const archive_button_form = document.createElement('form');
+          archive_button_form.method = 'PUT';
+          archive_button_form.className = 'archive-mail-form';
+          archive_button_form.className += " " + 'inline';
+          const archive_input_button = document.createElement('input');
+          archive_input_button.type = 'submit';
+          archive_input_button.className = 'archive-button';
+          archive_input_button.className += " " + SMALL_BUTTON;
+          archive_input_button.className += " " + "ml-2 float-right";
+          archive_input_button.value = "Archive";
+          const archive_input_id = document.createElement('input');
+          archive_input_id.type = 'hidden';
+          archive_input_id.className = 'current-email-id';
+          archive_input_id.name = 'archived_email_id';
+          archive_input_id.value = email.id;
+          archive_button_form.appendChild(archive_input_button);
+          archive_button_form.appendChild(archive_input_id);
+          new_div.appendChild(archive_button_form);
+        }
+      } else if (mailbox === 'sent')
+      {
+        if(email.archived)
+        {
+          const email_recipients = email.recipients.toString();
+          div_link.innerText = `${email_recipients}: ${email.subject}`;
+        }
+      } else {
+        div_link.innerText = `${email.sender}: ${email.subject}`;
       }
-      const archive_button_form = document.createElement('form');
-      archive_button_form.method = 'PUT';
-      archive_button_form.className = 'archive-mail-form';
-      archive_button_form.className += " " + 'inline';
-      const archive_input_button = document.createElement('input');
-      archive_input_button.type = 'submit';
-      archive_input_button.className = 'archive-button';
-      archive_input_button.className += " " + SMALL_BUTTON;
-      archive_input_button.className += " " + "ml-2 float-right";
-      archive_input_button.innerText = "Archive";
-      const archive_input_id = document.createElement('input');
-      archive_input_id.type = 'hidden';
-      archive_input_id.name = 'archived_email_id';
-      archive_input_id.value = email.id;
-      archive_button_form.appendChild(archive_input_button);
-      archive_button_form.appendChild(archive_input_id);
-      new_div.appendChild(archive_button_form);
-    } else if (mailbox === 'sent')
-    {
-      const email_recipients = email.recipients.toString();
-      new_div.innerText = `${email_recipients}: ${email.subject}`;
-    } else {
-      new_div.innerText = `${email.sender}: ${email.subject}`;
+
+      date_span.innerText = `${email.timestamp}`;
+      date_span.className = 'right-align';
+
+      div_link.appendChild(date_span);
+      new_email_link.appendChild(div_link);
+
+      new_div.appendChild(new_email_link);
+
+      document.querySelector('#emails-view')
+        .appendChild(new_div);
     }
 
-    date_span.innerText = `${email.timestamp}`;
-    date_span.className = 'right-align';
+    let loaded_emails_promise = fetch_email_api(mailbox);
 
-    new_div.appendChild(date_span);
+    loaded_emails_promise.then(loaded_emails => {
+      // Access the resolved value (array of emails)
+      console.log("Loaded e-mails:");
+      console.log(loaded_emails);
 
-    new_email_link.appendChild(new_div);
+      // Access individual email objects
+      if (loaded_emails.length > 0) {
+        loaded_emails.forEach(append_email);
+      }
+    }).catch(error => {
+      console.error("An error occurred:", error);
+    });
 
-    document.querySelector('#emails-view')
-      .appendChild(new_email_link);
-  }
-
-  let loaded_emails_promise = fetch_email_api(mailbox);
-
-  loaded_emails_promise.then(loaded_emails => {
-    // Access the resolved value (array of emails)
-    console.log("Loaded e-mails:");
-    console.log(loaded_emails);
-
-    // Access individual email objects
-    if (loaded_emails.length > 0) {
-      loaded_emails.forEach(append_email);
-    }
-  }).catch(error => {
-    console.error("An error occurred:", error);
-  });
 }
 
 function load_email_detail(event)
@@ -196,7 +227,7 @@ function load_email_detail(event)
       create_email_detail(loaded_email);
 
       // Send to API that e-mail was read
-      put_email_read(email_id);
+      put_email_action(email_id, 'read');
     }
   }).catch(error => {
     // NOTICE: We can send also a console.error to the console
@@ -204,8 +235,6 @@ function load_email_detail(event)
   });
 
 }
-
-
 
 function removeChildElements(element)
 {
@@ -288,13 +317,18 @@ function fetch_email_api(mailbox)
 
 }
 
-function put_email_read(email_id)
+function put_email_action(email_id, action)
 {
-  fetch(`emails/${email_id}`, {
+  const request_body = {};
+  if (action === 'read' || action === 'archived')
+  {
+    request_body[action] = true;
+   fetch(`emails/${email_id}`, {
     method: 'PUT',
-    body: JSON.stringify({
-      read: true
-    })
+    body: JSON.stringify(request_body)
   })
-      .then(response => console.log(`Sent e-mail as read: ${response.json()}`));
+      .then(response => console.log(`Sent e-mail as ${action}: ${response.json()}`));
+  } else {
+    console.error("Option needs to be either 'read' or 'archive'");
+  }
 }
