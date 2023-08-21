@@ -186,11 +186,8 @@ function load_mailbox(mailbox, message="") {
         create_mailbox_items(new_div, email);
       } else if (mailbox === 'sent')
       {
-        if(email.archived)
-        {
-          const email_recipients = email.recipients.toString();
-          div_link.innerText = `${email_recipients}: ${email.subject}`;
-        }
+        const email_recipients = email.recipients.toString();
+        div_link.innerText = `${email_recipients}: ${email.subject}`;
         create_mailbox_items(new_div, email)
       } else if (mailbox === 'archive')
       {
