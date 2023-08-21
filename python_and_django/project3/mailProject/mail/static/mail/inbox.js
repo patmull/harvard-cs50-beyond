@@ -308,7 +308,7 @@ function create_email_detail(email)
   const from_email_header_info = create_email_header_info_item('From', email.sender);
   const recipient_string = array_to_string(email.recipients);
   const to_email_header_info = create_email_header_info_item('To', recipient_string);
-  const subject_email_header_info = create_email_header_info_item('Subject', email.subject);
+  const subject_email_header_info = create_email_header_info_item('Subject', "Re: " + email.subject);
   const timestamp_email_header_info = create_email_header_info_item('Timestamp', email.timestamp);
 
   const reply_form = document.createElement('form');
