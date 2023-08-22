@@ -23,10 +23,15 @@ def index(request):
 def all_posts(request):
 
     if request.method == "POST":
-        all_posts = Post.objects.all()
-        all_posts_ordered = all_posts.order_by('created_at').all()
+        try:
+            all_posts = Post.objects.all()
+            all_posts_ordered = all_posts.order_by('created_at').all()
+        except Post.DoesNotExist:
+            return JsonResponse({"error": "Error! Posts couldn't be loaded from database"}, status=400)
         json_response = JsonResponse([post.serialize() for post in all_posts_ordered])
         return json_response
+    else:
+        return JsonResponse({"error": "POST request method requires"}, status=400)
 
 
 def login_view(request):
@@ -92,6 +97,6 @@ def new_post(request):
                                 created_at=datetime.datetime.now())
         new_post_created.save()
 
-        return HttpResponseRedirect(reverse('index'))
+        return JsonResponse({"message": "Email sent successfully"}, status=201)
 
     return HttpResponseRedirect(reverse('index'))
