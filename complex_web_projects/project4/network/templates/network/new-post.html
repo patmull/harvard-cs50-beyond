@@ -1,0 +1,24 @@
+
+<div class="w-100 p-2 m-2 border">
+    <div id="form-container" class="p-2 m-2">
+        <h2>New Post</h2>
+        <form method="POST" action="{% url 'new_post' %}">
+            {% csrf_token %}
+            <div class="w-50">
+                <label class="w-100">
+                    <span>Let the world hear you...</span>
+                    <br>
+                    <textarea class="w-75 form-control" name="post_text" required></textarea>
+                </label>
+            </div>
+            <br>
+            <label>
+                <span>Image or video (optional):</span>
+                <br>
+                <input class="form-control" name="multimedia_link" type="text">
+            </label>
+            <br>
+            <input type="submit" class="btn btn-primary" value="Send">
+        </form>
+    </div>
+</div>

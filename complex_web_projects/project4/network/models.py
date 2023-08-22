@@ -12,9 +12,9 @@ class Follower(models.Model):
 
 class Post(models.Model):
     text = models.CharField(max_length=280)
-    img = models.URLField(max_length=1000)
-    video = models.URLField(max_length=1000)
+    multimedia_link = models.URLField(max_length=1000)
     followers = models.ManyToManyField(Follower, related_name='followers')
+    created_at = models.DateTimeField()
 
 
 class Like(models.Model):

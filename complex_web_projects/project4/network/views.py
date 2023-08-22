@@ -1,14 +1,32 @@
+import datetime
+import json
+
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
-from .models import User
+from .models import User, Post
 
 
 def index(request):
-    return render(request, "network/index.html")
+    return render(request, "network/index.html", {
+        'title': "All posts"
+    })
+
+
+@csrf_exempt
+@login_required
+def all_posts(request):
+
+    if request.method == "POST":
+        all_posts = Post.objects.all()
+        all_posts_ordered = all_posts.order_by('created_at').all()
+        json_response = JsonResponse([post.serialize() for post in all_posts_ordered])
+        return json_response
 
 
 def login_view(request):
@@ -61,3 +79,19 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+
+@login_required
+def new_post(request):
+
+    if request.method == "POST":
+        new_post_text = request.POST['post_text']
+        new_post_multimedia_link = request.POST['multimedia_link']
+
+        new_post_created = Post(text=new_post_text, multimedia_link=new_post_multimedia_link,
+                                created_at=datetime.datetime.now())
+        new_post_created.save()
+
+        return HttpResponseRedirect(reverse('index'))
+
+    return HttpResponseRedirect(reverse('index'))
