@@ -86,12 +86,18 @@ def register(request):
         return render(request, "network/register.html")
 
 
+@csrf_exempt
 @login_required
 def new_post(request):
 
+    print("request:")
+    print(request)
+
     if request.method == "POST":
-        new_post_text = request.POST['post_text']
-        new_post_multimedia_link = request.POST['multimedia_link']
+
+        post_data = json.loads(request.body)
+        new_post_text = post_data.get('post_text')
+        new_post_multimedia_link = post_data.get('multimedia_link')
 
         new_post_created = Post(text=new_post_text, multimedia_link=new_post_multimedia_link,
                                 created_at=datetime.datetime.now())
