@@ -49,6 +49,9 @@
         {% if user.is_authenticated %}
             {{ user.username|json_script:"user_name" }}
         {% endif %}
+        <script>
+            var CSRF_TOKEN = "{{ csrf_token }}";
+        </script>
         <script type="text/javascript" src="{% static 'network/scripts.js' %}"></script>
     </body>
 </html>

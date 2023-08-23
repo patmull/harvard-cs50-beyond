@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import User, Post, Follower
+from .models import User, Post, Follow
 
 
 def index(request):
@@ -18,12 +18,14 @@ def index(request):
     })
 
 
+@csrf_exempt
 def all_posts(request):
 
     if request.method == "GET":
         try:
             all_posts = Post.objects.all()
             all_posts_ordered = all_posts.order_by('created_at').reverse().all()
+
         except Post.DoesNotExist:
             return JsonResponse({"error": "Error! Posts couldn't be loaded from database"}, status=400)
 
@@ -111,12 +113,19 @@ def new_post(request):
 @csrf_exempt
 @login_required()
 def follow(request):
+
+    user_logged = request.user
+
     follow_data = json.loads(request.body)
-    follow_user_id = follow_data.get('id')
+    follow_user_id = follow_data.get('user_id')
 
-    user_found = User.objects.filter(id=follow_user_id).first()
+    user_to_follow = User.objects.filter(id=follow_user_id).first()
 
-    new_follower = Follower(user=user_found)
-    user_found.followers.append(new_follower)
+    existing_follow = Follow.objects.filter(user_from=user_logged, user_to=user_to_follow)
 
-    return JsonResponse({"message": "Follower was addes succesfully to the user"}, status=201)
+    if not existing_follow.exists():
+
+        new_follow = Follow(user_from=user_logged, user_to=user_to_follow)
+        new_follow.save()
+
+    return JsonResponse({"message": "Follower was added successfully to the user"}, status=201)

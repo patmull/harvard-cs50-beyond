@@ -4,13 +4,15 @@ from django.db import models
 
 class User(AbstractUser):
     pass
-    followers = models.ManyToManyField('self', symmetrical=False, related_name='follower_of_user',
-                                       blank=True, null=True)
 
 
-class Follower(models.Model):
-    user = models.OneToOneField(User, on_delete=models.RESTRICT)
+class Follow(models.Model):
+    user_from = models.ForeignKey(User, on_delete=models.RESTRICT, related_name='follow_from')
+    user_to = models.ForeignKey(User, on_delete=models.RESTRICT, related_name='follow_to')
     created_at = models.DateTimeField
+
+    class Meta:
+        unique_together = ('user_from', 'user_to')
 
 
 class Post(models.Model):
@@ -23,16 +25,21 @@ class Post(models.Model):
         return f"Text: {self.text}, {self.user}"
 
     def serialize(self):
+
+        post_likes = Like.objects.filter(post=self).select_related('user')
+        post_likes_by_users = [like.user for like in post_likes]
+
         return {
             "id": self.id,
             "text": self.text,
             "multimedia_link": self.multimedia_link,
-            "followers": [follower for follower in self.user.followers.all()],
             "created_at": self.created_at,
             "user_name": self.user.username,
+            "user_id": self.user.id,
+            "post_liked_by_users": post_likes_by_users
         }
 
 
 class Like(models.Model):
-    post_like = models.ForeignKey(Post, null=True, on_delete=models.SET_NULL, related_name='post_likes')
-    user_like = models.ForeignKey(Post, null=True, on_delete=models.SET_NULL, related_name='user_likes')
+    post = models.ForeignKey(Post, null=True, on_delete=models.SET_NULL, related_name='post_like')
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='user_like')

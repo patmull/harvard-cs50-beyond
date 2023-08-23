@@ -1,6 +1,11 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    const csrf_token = CSRF_TOKEN;
+
+    console.log("CSRF_TOKEN");
+    console.log(csrf_token);
+
     const new_post_form = document.querySelector('#new-post-form');
 
     if(new_post_form !== null)
@@ -8,19 +13,25 @@ document.addEventListener('DOMContentLoaded', function () {
         new_post_form.addEventListener('submit', (event) => new_post(event));
     }
 
-    const new_follower_form = document.querySelector('#new-follower-form');
+    document.addEventListener('submit', (event) => {
+        console.log("event target");
+        console.log(event.target.className);
 
-    if(new_follower_form !== null)
-    {
-        new_follower_form.addEventListener('submit', (event) => add_new_follower(event));
-    }
+        if(event.target.className === "new-follower-form")
+        {
+            event.preventDefault();
+            console.log('New follower form found!');
+            add_new_follower(event, csrf_token);
+        } else {
+            console.log("Follower form not found. Just loading posts");
+        }
+    });
 
     document.querySelector('#posts').display = 'block';
-
     load_posts();
 });
 
-function new_post(event) {
+function new_post(event, csrf_token) {
     event.preventDefault();
 
     const post_text = event.target.post_text.value;
@@ -57,10 +68,13 @@ function new_post(event) {
 
 }
 
-function add_new_follower(event) {
+function add_new_follower(event, csrf_token) {
     event.preventDefault();
 
     const user_id = event.target.user_id.value;
+
+    console.log("user id:");
+    console.log(user_id);
 
     const new_follower_data = JSON.stringify({
         'user_id': user_id
@@ -72,7 +86,9 @@ function add_new_follower(event) {
     // Fetch
     fetch('/follow', {
         method: 'POST',
-        body: new_follower_data
+        body: new_follower_data,
+        headers: {'X-CSRFToken': csrf_token},
+        mode: 'same-origin' // Do not send CSRF token to another domain.
     })
         .then(response => {
             if(response.status === 201) {
@@ -122,6 +138,8 @@ function load_posts() {
 
             if(user_name !== null)
             {
+                // check whether the user already follows the given person
+
                 if(isEmpty(user_name))
                 {
                     include_follow_form = false;
@@ -159,11 +177,11 @@ function load_posts() {
             const user_id_hidden = document.createElement('input');
             user_id_hidden.type = 'hidden';
             user_id_hidden.name = 'user_id';
+            user_id_hidden.value = loaded_post.user_id;
 
             const user_form_submit = document.createElement('input');
             user_form_submit.type = 'submit';
             user_form_submit.value = "Follow";
-            user_form_submit.action = "/follow";
 
             const new_text = document.createElement('p');
             new_text.innerText = loaded_post.text;
