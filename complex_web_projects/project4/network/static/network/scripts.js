@@ -1,8 +1,12 @@
 document.addEventListener('DOMContentLoaded', function () {
-    /*
-    document.querySelector('#new-post-form')
-        .addEventListener('submit', (event) => new_post(event));
-    */
+
+    const new_post_form = document.querySelector('#new-post-form');
+
+    if(new_post_form !== null)
+    {
+        new_post_form.addEventListener('submit', (event) => new_post(event));
+    }
+
     document.querySelector('#posts').display = 'block';
     load_posts();
 
@@ -48,6 +52,7 @@ function new_post(event) {
 function load_posts() {
 
     const loaded_posts_promise = fetch_posts_api();
+    const posts_section_selector = document.querySelector('#posts');
 
     loaded_posts_promise.then(loaded_posts => {
         function append_post(loaded_post) {
@@ -56,16 +61,14 @@ function load_posts() {
 
             const post_div = document.createElement('div');
             post_div.className = 'post-detail';
+            post_div.className += " " + "container";
 
-            const posts_section_selector = document.querySelector('#posts');
             document.querySelector('#posts').style.display = 'block';
 
-            const h3_element = document.createElement('h3');
-            h3_element.innerText = loaded_post.user_name;
+            const user_name_element = document.createElement('h4');
+            user_name_element.innerText = loaded_post.user_name;
+            post_div.appendChild(user_name_element);
 
-            console.log("h3_element:");
-            console.log(h3_element);
-            post_div.appendChild(h3_element);
             const new_text = document.createElement('p');
             new_text.innerText = loaded_post.text;
             const new_date = document.createElement('p');
@@ -75,14 +78,30 @@ function load_posts() {
             post_div.appendChild(new_text);
             post_div.appendChild(new_date);
 
-            posts_section_selector.appendChild(post_div);
+            const posts_list = document.querySelector('#posts-list');
+            posts_list.appendChild(post_div);
 
+            posts_section_selector.appendChild(posts_list);
         }
 
         console.log("Loaded posts:");
         console.log(loaded_posts);
         if(loaded_posts.length > 0)
         {
+            const posts_section_headline = document.createElement('h3');
+            posts_section_headline.innerText = "What's new...";
+            const posts_section_headline_div = document.createElement('div');
+            posts_section_headline_div.className = 'container';
+
+            posts_section_headline_div.appendChild(posts_section_headline);
+            posts_section_selector.appendChild(posts_section_headline_div);
+
+            const posts_section_list = document.createElement('div');
+            posts_section_list.id = 'posts-list';
+            posts_section_list.className = 'row';
+
+            posts_section_selector.appendChild(posts_section_list);
+
             console.log("Loaded e-mails found");
             loaded_posts.forEach(append_post);
         } else {
