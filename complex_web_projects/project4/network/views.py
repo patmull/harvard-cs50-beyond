@@ -18,17 +18,16 @@ def index(request):
     })
 
 
-@csrf_exempt
-@login_required
 def all_posts(request):
 
-    if request.method == "POST":
+    if request.method == "GET":
         try:
             all_posts = Post.objects.all()
-            all_posts_ordered = all_posts.order_by('created_at').all()
+            all_posts_ordered = all_posts.order_by('created_at').reverse().all()
         except Post.DoesNotExist:
             return JsonResponse({"error": "Error! Posts couldn't be loaded from database"}, status=400)
-        json_response = JsonResponse([post.serialize() for post in all_posts_ordered])
+
+        json_response = JsonResponse([post.serialize() for post in all_posts_ordered], safe=False)
         return json_response
     else:
         return JsonResponse({"error": "POST request method requires"}, status=400)
@@ -98,9 +97,10 @@ def new_post(request):
         post_data = json.loads(request.body)
         new_post_text = post_data.get('post_text')
         new_post_multimedia_link = post_data.get('multimedia_link')
+        user_from_request = request.user
 
         new_post_created = Post(text=new_post_text, multimedia_link=new_post_multimedia_link,
-                                created_at=datetime.datetime.now())
+                                created_at=datetime.datetime.now(), user=user_from_request)
         new_post_created.save()
 
         return JsonResponse({"message": "Email sent successfully"}, status=201)

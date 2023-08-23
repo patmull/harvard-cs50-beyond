@@ -1,6 +1,12 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    {% include "network/new-post.html" %}
+    {% if user.is_authenticated %}
+        {% include "network/new-post.html" %}
+    {% else %}
+        <div class="container float-left p-2 m-2 alert alert-primary">
+            <a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">register</a> to be able to send a new post.
+        </div>
+    {% endif %}
     {% include "network/posts.html" %}
 {% endblock %}

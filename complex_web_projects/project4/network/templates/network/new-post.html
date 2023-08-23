@@ -1,4 +1,4 @@
-{% if user.is_authenticated %}
+
     <div class="w-100 p-2 m-2 border">
     <div id="form-container" class="p-2 m-2">
         <h2>New Post</h2>
@@ -22,8 +22,3 @@
         </form>
     </div>
 </div>
-{% else %}
-    <div class="container float-left p-2 m-2 alert alert-primary">
-        <a href="{% url 'login' %}">Login</a> or <a href="{% url 'register' %}">register</a> to be able to send a new post.
-    </div>
-{% endif %}
