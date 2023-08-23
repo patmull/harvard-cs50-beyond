@@ -29,7 +29,7 @@ class Post(models.Model):
             "multimedia_link": self.multimedia_link,
             "followers": [follower for follower in self.user.followers.all()],
             "created_at": self.created_at,
-            "user_name": self.user.username
+            "user_name": self.user.username,
         }
 
 

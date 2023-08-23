@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import User, Post
+from .models import User, Post, Follower
 
 
 def index(request):
@@ -106,3 +106,17 @@ def new_post(request):
         return JsonResponse({"message": "Email sent successfully"}, status=201)
 
     return HttpResponseRedirect(reverse('index'))
+
+
+@csrf_exempt
+@login_required()
+def follow(request):
+    follow_data = json.loads(request.body)
+    follow_user_id = follow_data.get('id')
+
+    user_found = User.objects.filter(id=follow_user_id).first()
+
+    new_follower = Follower(user=user_found)
+    user_found.followers.append(new_follower)
+
+    return JsonResponse({"message": "Follower was addes succesfully to the user"}, status=201)

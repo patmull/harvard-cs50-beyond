@@ -46,6 +46,9 @@
             {% block body %}
             {% endblock %}
         </div>
+        {% if user.is_authenticated %}
+            {{ user.username|json_script:"user_name" }}
+        {% endif %}
         <script type="text/javascript" src="{% static 'network/scripts.js' %}"></script>
     </body>
 </html>

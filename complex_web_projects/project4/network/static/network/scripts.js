@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', function () {
 
     const new_post_form = document.querySelector('#new-post-form');
@@ -7,9 +8,16 @@ document.addEventListener('DOMContentLoaded', function () {
         new_post_form.addEventListener('submit', (event) => new_post(event));
     }
 
-    document.querySelector('#posts').display = 'block';
-    load_posts();
+    const new_follower_form = document.querySelector('#new-follower-form');
 
+    if(new_follower_form !== null)
+    {
+        new_follower_form.addEventListener('submit', (event) => add_new_follower(event));
+    }
+
+    document.querySelector('#posts').display = 'block';
+
+    load_posts();
 });
 
 function new_post(event) {
@@ -49,6 +57,43 @@ function new_post(event) {
 
 }
 
+function add_new_follower(event) {
+    event.preventDefault();
+
+    const user_id = event.target.user_id.value;
+
+    const new_follower_data = JSON.stringify({
+        'user_id': user_id
+    });
+
+    console.log("new_follower_data:");
+    console.log(new_follower_data);
+
+    // Fetch
+    fetch('/follow', {
+        method: 'POST',
+        body: new_follower_data
+    })
+        .then(response => {
+            if(response.status === 201) {
+                response.json()
+                    .then(result => {
+                        console.log("result");
+                        console.log(result);
+
+                        console.log("Loading posts...");
+                        load_posts();
+                    });
+            } else {
+                console.error("Failed to get successful status from the API request");
+            }
+        })
+}
+
+function isEmpty(str) {
+    return (!str || str.length === 0 );
+}
+
 function load_posts() {
 
     const loaded_posts_promise = fetch_posts_api();
@@ -56,6 +101,8 @@ function load_posts() {
 
     loaded_posts_promise.then(loaded_posts => {
         function append_post(loaded_post) {
+            // const logged_user_id = parseInt({{ request.user.id }})
+
             console.log("loaded_post");
             console.log(loaded_post);
 
@@ -69,12 +116,66 @@ function load_posts() {
             user_name_element.innerText = loaded_post.user_name;
             post_div.appendChild(user_name_element);
 
+            const user_name = document.getElementById('user_name');
+
+            let include_follow_form = false;
+
+            if(user_name !== null)
+            {
+                if(isEmpty(user_name))
+                {
+                    include_follow_form = false;
+                } else {
+                    const logged_in_user_name = JSON.parse(user_name.textContent);
+
+                    console.log("User names:");
+                    console.log(loaded_post.user_name);
+                    console.log(logged_in_user_name);
+
+                    if(loaded_post.user_name !== logged_in_user_name)
+                    {
+                        console.log("User names are not equal.");
+                        include_follow_form = true;
+                    } else {
+                        console.log("User names are equal.");
+                        include_follow_form = false;
+                        console.log("No user logged in.");
+                    }
+                }
+            } else {
+                include_follow_form = false;
+                console.error("Was unable to get id of an logged in user.");
+            }
+
+            let follow_form;
+
+            if(include_follow_form === true)
+            {
+                follow_form = document.createElement('form');
+                follow_form.className = 'new-follower-form';
+                follow_form.method = 'POST';
+            }
+
+            const user_id_hidden = document.createElement('input');
+            user_id_hidden.type = 'hidden';
+            user_id_hidden.name = 'user_id';
+
+            const user_form_submit = document.createElement('input');
+            user_form_submit.type = 'submit';
+            user_form_submit.value = "Follow";
+            user_form_submit.action = "/follow";
+
             const new_text = document.createElement('p');
             new_text.innerText = loaded_post.text;
             const new_date = document.createElement('p');
             new_date.className = 'post-date';
             new_date.innerText = loaded_post.created_at;
 
+            if(include_follow_form === true)
+            {
+                follow_form.append(user_id_hidden, user_form_submit);
+                post_div.appendChild(follow_form);
+            }
             post_div.appendChild(new_text);
             post_div.appendChild(new_date);
 
@@ -110,8 +211,6 @@ function load_posts() {
     }).catch(error => {
         console.error("An error occurred: ", error);
     });
-
-
 }
 
 function fetch_posts_api()
