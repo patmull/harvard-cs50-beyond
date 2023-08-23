@@ -138,12 +138,24 @@ function load_posts() {
 
             if(user_name !== null)
             {
-                // check whether the user already follows the given person
+                // TODO: check whether the user already follows the given person
 
                 if(isEmpty(user_name))
                 {
                     include_follow_form = false;
                 } else {
+
+                    const loaded_followers_promise = fetch_followers();
+                    let followers;
+                    loaded_followers_promise.then(
+                        loaded_followers => {
+                          followers = loaded_followers.followers;
+                        }
+                    )
+
+                    console.log(followers);
+                    console.log("followers:");
+
                     const logged_in_user_name = JSON.parse(user_name.textContent);
 
                     console.log("User names:");
@@ -159,6 +171,8 @@ function load_posts() {
                         include_follow_form = false;
                         console.log("No user logged in.");
                     }
+
+
                 }
             } else {
                 include_follow_form = false;
@@ -237,5 +251,14 @@ function fetch_posts_api()
         .then(response => response.json())
         .then(posts => {
             return posts;
+        })
+}
+
+function fetch_followers()
+{
+    return fetch('/followers', {method: 'GET'})
+        .then(response => response.json())
+        .then(followers => {
+            return followers;
         })
 }

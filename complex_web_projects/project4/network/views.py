@@ -35,6 +35,21 @@ def all_posts(request):
         return JsonResponse({"error": "POST request method requires"}, status=400)
 
 
+@csrf_exempt
+@login_required
+def followers(request):
+    if request.method == "GET":
+        logged_user = request.user
+
+        current_user = User.objects.filter(id=logged_user.id).first()
+        followers = current_user.serialize_followers()
+        json_response = JsonResponse(json.dumps(followers), safe=False)
+
+        return json_response
+    else:
+        return JsonResponse({"error": "Other method not supported."}, status=400)
+
+
 def login_view(request):
     if request.method == "POST":
 

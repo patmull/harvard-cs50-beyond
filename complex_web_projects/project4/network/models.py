@@ -5,6 +5,14 @@ from django.db import models
 class User(AbstractUser):
     pass
 
+    def serialize_followers(self):
+        follower_from = Follow.objects.filter(user_from=self).select_related('user_to')
+        followers = [follower.user_to.username for follower in follower_from]
+
+        return {
+            'followers': followers
+        }
+
 
 class Follow(models.Model):
     user_from = models.ForeignKey(User, on_delete=models.RESTRICT, related_name='follow_from')
