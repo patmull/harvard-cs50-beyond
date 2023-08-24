@@ -160,16 +160,18 @@ def unfollow(request):
     return JsonResponse({"message": "Unfollow was added successfully to the user"}, status=201)
 
 
+@csrf_exempt
+@login_required()
 def new_comment(request):
 
     if request.method == 'PUT':
-        user_id = request.get('user_id')
-        comment_text = request.get('new_comment_text')
+        user_id = request.PUT.get('user_id')
+        comment_text = request.PUT.get('new_comment_text')
 
         try:
             comment_sender_user = User.objects.get(id=user_id)
-
             comment = Comment(text=comment_text, user=comment_sender_user)
+            comment.save()
         except User.DoesNotExist:
             raise ValueError("User was not found.")
 

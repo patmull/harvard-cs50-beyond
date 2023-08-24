@@ -48,6 +48,22 @@ function new_comment(event) {
 
         event.target.nextSibling.style.display = 'block';
     }
+
+    if(event.target.className === 'send-comment-button')
+    {
+        // TODO:
+        const comment_data = {};
+        comment_data['user_id'] = event.target.user_id;
+
+        fetch('/new-comment', {
+            body: JSON.stringify(comment_data),
+            method: 'PUT'
+        })
+            .then(response => response.json())
+            .then(result => {
+                console.log(`Result: ${result}`);
+            })
+    }
 }
 
 function new_post(event, csrf_token) {
@@ -389,6 +405,7 @@ function create_comment_form(loaded_post)
     const submit_comment_button = document.createElement('input');
     submit_comment_button.type = 'submit';
     submit_comment_button.value = 'Send';
+    submit_comment_button.className = 'send-comment-button';
 
     new_comment_form.append(comment_text, new_comment_form_input, submit_comment_button);
 
