@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from .controllers import follow_unfollow_data
-from .models import User, Post, Follow
+from .models import User, Post, Follow, Comment
 
 
 def index(request):
@@ -158,3 +158,20 @@ def unfollow(request):
         raise ModuleNotFoundError("No user with this id found.")
 
     return JsonResponse({"message": "Unfollow was added successfully to the user"}, status=201)
+
+
+def new_comment(request):
+
+    if request.method == 'PUT':
+        user_id = request.get('user_id')
+        comment_text = request.get('new_comment_text')
+
+        try:
+            comment_sender_user = User.objects.get(id=user_id)
+
+            comment = Comment(text=comment_text, user=comment_sender_user)
+        except User.DoesNotExist:
+            raise ValueError("User was not found.")
+
+    else:
+        return JsonResponse({"error": "Method not supported"}, status=400)

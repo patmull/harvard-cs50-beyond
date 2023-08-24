@@ -8,6 +8,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const new_post_form = document.querySelector('#new-post-form');
 
+    document.querySelector('#following-nav-link')
+        .addEventListener('click', (event) => load_followings());
+
     if(new_post_form !== null)
     {
         new_post_form.addEventListener('submit', (event) => new_post(event));
@@ -27,11 +30,25 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    document.querySelector('#following-nav-link').addEventListener('click', (event) => load_followings());
+    document.querySelector('#posts')
+        .addEventListener('click', (event) => new_comment(event));
 
-    document.querySelector('#posts').display = 'block';
+    document.querySelector('#posts').style.display = 'block';
     load_posts();
 });
+
+function new_comment(event) {
+    event.preventDefault();
+
+    if(event.target.className === 'new-comment-button')
+    {
+        console.log("Comment button clicked!");
+        console.log("clicked target:");
+        console.log(event.target.nextSibling);
+
+        event.target.nextSibling.style.display = 'block';
+    }
+}
 
 function new_post(event, csrf_token) {
     event.preventDefault();
@@ -144,6 +161,7 @@ function load_posts() {
             post_div.appendChild(user_name_element);
 
             let include_follow_unfollow_form = false;
+            let user_logged = false;
 
             let already_following = false;
 
@@ -152,6 +170,7 @@ function load_posts() {
                 if(isEmpty(logged_in_user_name))
                 {
                     include_follow_unfollow_form = false;
+                    user_logged = false;
                 } else {
                     console.log("User names:");
                     console.log(loaded_post.user_name);
@@ -162,15 +181,18 @@ function load_posts() {
                         console.log("User names are equal.");
                         include_follow_unfollow_form = false;
                         console.log("No user logged in.");
+                        user_logged = true;
 
                     } else {
                         console.log("User names are not equal.");
                         include_follow_unfollow_form = true;
+                        user_logged = true;
                     }
                 }
             } else {
                 include_follow_unfollow_form = false;
                 console.error("Was unable to get id of an logged in user.");
+                user_logged = false;
             }
 
             if(following === null || following === undefined)
@@ -213,8 +235,16 @@ function load_posts() {
                             }
                         }
 
+                        const new_comment_button = document.createElement('button');
+                        new_comment_button.className = 'new-comment-button';
+                        new_comment_button.innerText = 'Comment';
+
+                        const comment_form = create_comment_form(loaded_post);
+
                         post_div.appendChild(new_text);
                         post_div.appendChild(new_date);
+                        post_div.appendChild(new_comment_button);
+                        post_div.appendChild(comment_form);
 
                         const posts_list = document.querySelector('#posts-list');
                         posts_list.appendChild(post_div);
@@ -272,7 +302,11 @@ function load_followings() {
         console.log("user_name (following):");
         console.log(user_name);
 
-        posts_section.append(`<p>${user_name}</p>`);
+        const following_user_div = document.createElement('div');
+        following_user_div.className = 'container';
+        following_user_div.innerText = user_name;
+
+        posts_section.append(following_user_div);
     }
 
     document.getElementById('page-title').innerText = "Following";
@@ -333,4 +367,32 @@ function create_follow_unfollow_form(submit_text, user_id)
     follow_form.append(user_id_hidden, follow_user_form_submit);
 
     return follow_form;
+}
+
+function create_comment_form(loaded_post)
+{
+    // Not be visible by default
+
+    const new_comment_form = document.createElement('form');
+    new_comment_form.method = 'PUT';
+    new_comment_form.className = 'new-comment-form';
+
+    const comment_text = document.createElement('textarea');
+    comment_text.className = 'form-control';
+    comment_text.rows = 3;
+    comment_text.name = 'new_comment_text';
+
+    const new_comment_form_input = document.createElement('input');
+    new_comment_form_input.type = 'hidden';
+    new_comment_form_input.value = loaded_post.id;
+
+    const submit_comment_button = document.createElement('input');
+    submit_comment_button.type = 'submit';
+    submit_comment_button.value = 'Send';
+
+    new_comment_form.append(comment_text, new_comment_form_input, submit_comment_button);
+
+    new_comment_form.style.display = "none";
+
+    return new_comment_form;
 }
