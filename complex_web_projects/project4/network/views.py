@@ -165,15 +165,32 @@ def unfollow(request):
 def new_comment(request):
 
     if request.method == 'PUT':
-        user_id = request.PUT.get('user_id')
-        comment_text = request.PUT.get('new_comment_text')
+        request_body = request.body
+        user_data = json.loads(request_body)
+        if user_data.get('post_id') is not None:
+            post_id = user_data["post_id"]
 
-        try:
-            comment_sender_user = User.objects.get(id=user_id)
-            comment = Comment(text=comment_text, user=comment_sender_user)
-            comment.save()
-        except User.DoesNotExist:
-            raise ValueError("User was not found.")
+            if user_data.get('comment_text') is not None:
+                comment_text = user_data.get('comment_text')
+
+                try:
+                    comment_sender_user = request.user
+                    post_found = Post.objects.get(id=post_id)
+
+                    comment = Comment(text=comment_text, user=comment_sender_user, post=post_found)
+
+                    comment.save()
+
+                    return JsonResponse({
+                        "message": "Comment saved"
+                    }, status=204)
+                except User.DoesNotExist or Post.DoesNotExist:
+                    return JsonResponse({"message": "User was not found."}, status=400)
+
+            else:
+                return JsonResponse({"message": "Comment input text not found."}, status=400)
+        else:
+            return JsonResponse({"message": "Post id input not found."}, status=400)
 
     else:
         return JsonResponse({"error": "Method not supported"}, status=400)

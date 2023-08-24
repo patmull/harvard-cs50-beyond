@@ -53,16 +53,24 @@ function new_comment(event) {
     {
         // TODO:
         const comment_data = {};
-        comment_data['user_id'] = event.target.user_id;
+        comment_data['post_id'] = event.target.form.post_id.value;
+        comment_data['comment_text'] = event.target.form.new_comment_text.value;
+        console.log("comment_data");
+        console.log(comment_data);
 
         fetch('/new-comment', {
+            method: 'PUT',
             body: JSON.stringify(comment_data),
-            method: 'PUT'
         })
             .then(response => response.json())
             .then(result => {
                 console.log(`Result: ${result}`);
             })
+            .catch(
+                error => {
+                    console.error(error);
+                }
+            )
     }
 }
 
@@ -400,6 +408,7 @@ function create_comment_form(loaded_post)
 
     const new_comment_form_input = document.createElement('input');
     new_comment_form_input.type = 'hidden';
+    new_comment_form_input.name = 'post_id';
     new_comment_form_input.value = loaded_post.id;
 
     const submit_comment_button = document.createElement('input');

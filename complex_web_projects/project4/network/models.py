@@ -56,3 +56,4 @@ class Like(models.Model):
 class Comment(models.Model):
     text = models.CharField(max_length=255)
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='comment_user')
+    post = models.ForeignKey(Post, null=True, on_delete=models.SET_NULL, related_name='comment_post')
