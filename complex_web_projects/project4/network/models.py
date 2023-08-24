@@ -5,12 +5,12 @@ from django.db import models
 class User(AbstractUser):
     pass
 
-    def serialize_followers(self):
+    def serialize_following(self):
         follower_from = Follow.objects.filter(user_from=self).select_related('user_to')
-        followers = [follower.user_to.username for follower in follower_from]
+        following = [follower.user_to.username for follower in follower_from]
 
         return {
-            'followers': followers
+            'following': following
         }
 
 

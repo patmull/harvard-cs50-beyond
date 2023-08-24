@@ -9,6 +9,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
+from .controllers import follow_unfollow_data
 from .models import User, Post, Follow
 
 
@@ -37,13 +38,14 @@ def all_posts(request):
 
 @csrf_exempt
 @login_required
-def followers(request):
+def following(request):
     if request.method == "GET":
         logged_user = request.user
 
         current_user = User.objects.filter(id=logged_user.id).first()
-        followers = current_user.serialize_followers()
-        json_response = JsonResponse(json.dumps(followers), safe=False)
+        following_users = current_user.serialize_following()
+        # WARNING: If json_dumps is used, JS loads string, not a proper object!
+        json_response = JsonResponse(following_users, safe=False)
 
         return json_response
     else:
@@ -130,9 +132,7 @@ def new_post(request):
 def follow(request):
 
     user_logged = request.user
-
-    follow_data = json.loads(request.body)
-    follow_user_id = follow_data.get('user_id')
+    follow_user_id = follow_unfollow_data(request)
 
     user_to_follow = User.objects.filter(id=follow_user_id).first()
 
@@ -144,3 +144,17 @@ def follow(request):
         new_follow.save()
 
     return JsonResponse({"message": "Follower was added successfully to the user"}, status=201)
+
+
+def unfollow(request):
+    user_logged = request.user
+    unfollow_user_id = follow_unfollow_data(request)
+
+    try:
+        user_to_unfollow = User.objects.get(id=unfollow_user_id)
+        new_follow = Follow.objects.filter(user_from=user_logged, user_to=user_to_unfollow)
+        new_follow.delete()
+    except User.DoesNotExist:
+        raise ModuleNotFoundError("No user with this id found.")
+
+    return JsonResponse({"message": "Unfollow was added successfully to the user"}, status=201)
