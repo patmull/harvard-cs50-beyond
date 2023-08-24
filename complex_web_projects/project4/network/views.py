@@ -166,12 +166,12 @@ def new_comment(request):
 
     if request.method == 'PUT':
         request_body = request.body
-        user_data = json.loads(request_body)
-        if user_data.get('post_id') is not None:
-            post_id = user_data["post_id"]
+        comment_data = json.loads(request_body)
+        if comment_data.get('post_id') is not None:
+            post_id = comment_data["post_id"]
 
-            if user_data.get('comment_text') is not None:
-                comment_text = user_data.get('comment_text')
+            if comment_data.get('comment_text') is not None:
+                comment_text = comment_data.get('comment_text')
 
                 try:
                     comment_sender_user = request.user
@@ -183,7 +183,7 @@ def new_comment(request):
 
                     return JsonResponse({
                         "message": "Comment saved"
-                    }, status=204)
+                    }, status=201)
                 except User.DoesNotExist or Post.DoesNotExist:
                     return JsonResponse({"message": "User was not found."}, status=400)
 
@@ -194,3 +194,15 @@ def new_comment(request):
 
     else:
         return JsonResponse({"error": "Method not supported"}, status=400)
+
+
+def comments_for_post(request, post_id):
+    if request.method == 'GET':
+
+        post_found = Post.objects.filter(id=post_id)
+        # TODO: This does not work. ValueError: The QuerySet value for an exact lookup must be limited to one result using slicing.
+        comments_found = Comment.objects.filter(post=post_found).all()
+
+        json_response = JsonResponse([comment.serialize() for comment in comments_found], safe=False)
+
+        return json_response

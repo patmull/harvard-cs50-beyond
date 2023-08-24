@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', function () {
     load_posts();
 });
 
+
+
 function new_comment(event) {
     event.preventDefault();
 
@@ -64,7 +66,10 @@ function new_comment(event) {
         })
             .then(response => response.json())
             .then(result => {
-                console.log(`Result: ${result}`);
+                console.log(result);
+
+                load_posts();
+
             })
             .catch(
                 error => {
@@ -171,6 +176,7 @@ function load_posts() {
     }
 
     loaded_posts_promise.then(loaded_posts => {
+
         function append_post(loaded_post) {
             // const logged_user_id = parseInt({{ request.user.id }})
 
@@ -265,16 +271,31 @@ function load_posts() {
 
                         const comment_form = create_comment_form(loaded_post);
 
+                        const comment_section = document.createElement('div');
+                        comment_section.className = 'comment-section';
+                        comment_section.style.display = 'block';
+
+                        const comments_promise = load_comments(loaded_post.id);
+
+                        comments_promise.then(comments => {
+                            console.log("comments:");
+                            console.log(comments);
+
+                            // comment_section.appendChild();
+                        })
+
                         post_div.appendChild(new_text);
                         post_div.appendChild(new_date);
                         post_div.appendChild(new_comment_button);
                         post_div.appendChild(comment_form);
+                        post_div.appendChild(comment_section);
 
                         const posts_list = document.querySelector('#posts-list');
                         posts_list.appendChild(post_div);
 
                         posts_section_selector.appendChild(posts_list);
                     })
+
             }
         }
 
@@ -304,17 +325,16 @@ function load_posts() {
     });
 }
 
+function load_comments(post_id) {
 
-function get_following_users()
-{
-    // User is logged in
-    const loaded_following_promise = fetch_following();
+    const comments_promise = get_comments(post_id);
 
-    return loaded_following_promise.then(
-        loaded_followers => {
-          return loaded_followers.following;
-        }
-    )
+    return comments_promise.then(comments => {
+        console.log("comments:");
+        console.log(comments);
+
+        return comments;
+    });
 }
 
 function load_followings() {
@@ -348,6 +368,28 @@ function load_followings() {
 
 }
 
+function get_following_users()
+{
+    const loaded_following_promise = fetch_following();
+
+    return loaded_following_promise.then(
+        loaded_followers => {
+          return loaded_followers.following;
+        }
+    )
+}
+
+function get_comments(post_id)
+{
+    const loaded_comments_promise = fetch_comments(post_id);
+
+    return loaded_comments_promise.then(
+        loaded_comments => {
+          return loaded_comments.comments;
+        }
+    )
+}
+
 function fetch_posts_api()
 {
     return fetch('/all-posts', {method: 'GET'})
@@ -365,6 +407,17 @@ function fetch_following()
             return data;
         })
 }
+
+
+function fetch_comments(post_id)
+{
+    return fetch(`/comments-for-post/${post_id}`, {
+        method: 'GET',
+    }).then(data => {
+        return data;
+    })
+}
+
 
 
 function create_follow_unfollow_form(submit_text, user_id)
