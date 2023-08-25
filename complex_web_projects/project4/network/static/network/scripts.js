@@ -20,15 +20,31 @@ document.addEventListener('DOMContentLoaded', function () {
         .addEventListener('click', (event) => click_handler(event, csrf_token));
 
     document.querySelector('#posts').style.display = 'block';
-    load_posts();
+
+    load_posts(true);
+
 });
 
-
-
 function click_handler(event, csrf_token) {
+
     event.preventDefault();
 
-    if(event.target.form !== null)
+    // KEEP HERE!
+    console.log("event.target");
+    console.log(event.target);
+    console.log(event.target.parentNode.class);
+
+    if(event.target.className === 'user-name-link' || event.target.parentNode.class === 'user-name-link')
+    {
+        console.log('href:');
+        console.log(event.target.parentNode.innerText);
+
+        const user_name = event.target.parentNode.innerText;
+
+        load_posts(false, user_name);
+    }
+
+    if(event.target.form !== null && event.target.form !== undefined)
     {
         if(event.target.form.className === 'new-follower-form')
         {
@@ -40,6 +56,8 @@ function click_handler(event, csrf_token) {
 
     if(event.target.className === 'new-comment-button')
     {
+        event.preventDefault();
+
         console.log("Comment button clicked!");
         console.log("clicked target:");
         console.log(event.target.nextSibling);
@@ -49,6 +67,8 @@ function click_handler(event, csrf_token) {
 
     if(event.target.className === 'send-comment-button')
     {
+        event.preventDefault();
+
         // TODO:
         const comment_data = {};
         comment_data['post_id'] = event.target.form.post_id.value;
@@ -108,6 +128,7 @@ function new_post(event, csrf_token) {
 }
 
 function follow_unfollow(event, csrf_token, follow) {
+    event.preventDefault();
 
     const user_id = event.target.form.user_id.value;
 
@@ -150,9 +171,16 @@ function isEmpty(str) {
     return (!str || str.length === 0 );
 }
 
-function load_posts() {
+function load_posts(all=false, user_name) {
 
-    const loaded_posts_promise = fetch_posts_api();
+    let loaded_posts_promise;
+    if(all === false)
+    {
+        loaded_posts_promise = fetch_posts_api(all, user_name);
+    } else {
+        loaded_posts_promise = fetch_posts_api(all);
+    }
+
     const posts_section_selector = document.querySelector('#posts');
 
     // Clearing the previous content to fully load posts again.
@@ -161,8 +189,8 @@ function load_posts() {
     let following;
 
     // Getting from Django
-    const user_name = document.getElementById('user_name');
-    const logged_in_user_name = JSON.parse(user_name.textContent);
+    const logged_user_name = document.getElementById('user_name');
+    const logged_in_user_name = JSON.parse(logged_user_name.textContent);
 
     if(logged_in_user_name !== null)
     {
@@ -183,9 +211,16 @@ function load_posts() {
 
             document.querySelector('#posts').style.display = 'block';
 
+            const user_name_link = document.createElement('a');
+            user_name_link.href = `user-posts/${loaded_post.user_name}`;
+            user_name_link.class = 'user-name-link';
+
             const user_name_element = document.createElement('h4');
             user_name_element.innerText = loaded_post.user_name;
-            post_div.appendChild(user_name_element);
+
+            user_name_link.appendChild(user_name_element);
+
+            post_div.appendChild(user_name_link);
 
             let include_follow_unfollow_form = false;
             let user_logged = false;
@@ -195,7 +230,7 @@ function load_posts() {
             const post_text = document.createElement('p');
             post_text.innerText = loaded_post.text;
             const post_date = document.createElement('p');
-            post_date.className = 'post-date';
+            post_date.className = 'datetime';
             post_date.innerText = loaded_post.created_at;
 
             if(logged_in_user_name !== null)
@@ -255,60 +290,70 @@ function load_posts() {
                             if(already_following === true)
                             {
                                 follow_form = create_follow_unfollow_form("Unfollow", loaded_post.user_id);
-                                post_div.appendChild(follow_form);
                             } else {
                                 follow_form = create_follow_unfollow_form("Follow", loaded_post.user_id);
-                                post_div.appendChild(follow_form);
                             }
+                            post_div.appendChild(follow_form);
+
+                        }
+                        post_div.appendChild(post_date);
+                        post_div.appendChild(post_text);
+
+                        const comment_section = document.createElement('div');
+                        comment_section.className = 'comment-section';
+                        comment_section.style.display = 'block';
+
+                        console.log("Loading comments...");
+                        const comments_promise = fetch_comments(loaded_post.id);
+
+                        comments_promise
+                            .then(comments => {
+
+                            function append_comments(comment) {
+
+                                const comment_div = document.createElement('div');
+                                comment_div.className = 'comment container';
+                                comment_div.className += " " + "mt-3 mb-3";
+
+                                console.log(`comment.datetime: ${comment.datetime}`);
+
+                                const comment_datetime_div = document.createElement('div');
+                                comment_datetime_div.className = 'comment-datetime';
+                                comment_datetime_div.innerText = comment.datetime;
+                                comment_datetime_div.className += " " + "datetime";
+
+                                const comment_user_name_div = document.createElement('div');
+                                comment_user_name_div.className = 'comment-username';
+                                comment_user_name_div.innerText = comment.user;
+
+                                const comment_text_div = document.createElement('div');
+                                comment_text_div.className = 'comment-text';
+                                comment_text_div.innerText = comment.text;
+
+                                comment_div.append(comment_datetime_div, comment_user_name_div, comment_text_div);
+
+                                comment_section.appendChild(comment_div);
+                            }
+                            comments.forEach(append_comments);
+                        })
+
+                        post_div.appendChild(comment_section);
+
+                        if(user_logged === true)
+                        {
+                            const comment_form = create_comment_form(loaded_post);
+
+                            const new_comment_button = document.createElement('button');
+                            new_comment_button.className = 'new-comment-button';
+                            new_comment_button.innerText = 'Comment';
+
+                            post_div.appendChild(new_comment_button);
+                            post_div.appendChild(comment_form);
                         }
                     })
             }
-
-            post_div.appendChild(post_text);
-            post_div.appendChild(post_date);
-
-            if(user_logged === true)
-            {
-                const comment_form = create_comment_form(loaded_post);
-                const new_comment_button = document.createElement('button');
-                new_comment_button.className = 'new-comment-button';
-                new_comment_button.innerText = 'Comment';
-
-                post_div.appendChild(new_comment_button);
-                post_div.appendChild(comment_form);
-            }
-
-            const comment_section = document.createElement('div');
-            comment_section.className = 'comment-section';
-            comment_section.style.display = 'block';
-
-            console.log("Loading comments...");
-            const comments_promise = fetch_comments(loaded_post.id);
-
-
-            comments_promise.then(comments => {
-
-                function append_comments(comment) {
-                    const comment_div = document.createElement('div');
-                    comment_div.className = 'comment container';
-
-                    const comment_user_name_div = document.createElement('div');
-                    comment_user_name_div.className = 'comment-username';
-                    comment_user_name_div.innerText = comment.user;
-
-                    const comment_text_div = document.createElement('div');
-                    comment_text_div.className = 'comment-text';
-                    comment_text_div.innerText = comment.text;
-
-                    comment_div.append(comment_user_name_div, comment_text_div);
-
-                    comment_section.appendChild(comment_div);
-                }
-
-                comments.forEach(append_comments);
-            })
-
-            post_div.appendChild(comment_section);
+            console.log("post_div");
+            console.log(post_div);
 
             const posts_list = document.querySelector('#posts-list');
             posts_list.appendChild(post_div);
@@ -340,16 +385,6 @@ function load_posts() {
     }).catch(error => {
         console.error("An error occurred: ", error);
     });
-}
-
-function load_comments(post_id) {
-
-    const comments_promise = fetch_comments(post_id);
-
-    return comments_promise.then(loaded_comments => {
-        return loaded_comments;
-    });
-
 }
 
 function load_followings() {
@@ -394,9 +429,18 @@ function get_following_users()
     )
 }
 
-function fetch_posts_api()
+function fetch_posts_api(all=false, user_name=null)
 {
-    return fetch('/all-posts', {method: 'GET'})
+    let link;
+    if(all === true)
+    {
+        link = '/all-posts';
+    } else {
+        if (user_name !== null)
+            link = `/user-posts/${user_name}`;
+    }
+
+    return fetch(link, {method: 'GET'})
         .then(response => response.json())
         .then(posts => {
             return posts;
@@ -452,7 +496,12 @@ function create_follow_unfollow_form(submit_text, user_id)
     follow_user_form_submit.value = submit_text;
     follow_form.append(user_id_hidden, follow_user_form_submit);
 
-    return follow_form;
+    const follow_div = document.createElement('div');
+    follow_div.className = 'follow-div';
+
+    follow_div.appendChild(follow_form);
+
+    return follow_div;
 }
 
 function create_comment_form(loaded_post)

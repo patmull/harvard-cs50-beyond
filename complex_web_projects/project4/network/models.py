@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -17,7 +19,7 @@ class User(AbstractUser):
 class Follow(models.Model):
     user_from = models.ForeignKey(User, on_delete=models.RESTRICT, related_name='follow_from')
     user_to = models.ForeignKey(User, on_delete=models.RESTRICT, related_name='follow_to')
-    created_at = models.DateTimeField
+    created_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         unique_together = ('user_from', 'user_to')
@@ -57,9 +59,11 @@ class Comment(models.Model):
     text = models.CharField(max_length=255)
     user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='comment_user')
     post = models.ForeignKey(Post, null=True, on_delete=models.SET_NULL, related_name='comment_post')
+    created_at = models.DateTimeField(default=datetime.datetime.now())
 
     def serialize(self):
         return {
             "text": self.text,
-            "user": self.user.username
+            "user": self.user.username,
+            "datetime": self.created_at
         }

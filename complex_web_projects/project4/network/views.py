@@ -178,7 +178,6 @@ def new_comment(request):
                     post_found = Post.objects.get(id=post_id)
 
                     comment = Comment(text=comment_text, user=comment_sender_user, post=post_found)
-
                     comment.save()
 
                     return JsonResponse({
@@ -207,3 +206,16 @@ def comments_for_post(request, post_id):
         json_response = JsonResponse([comment.serialize() for comment in comments_found], safe=False)
 
         return json_response
+
+
+def posts_for_user(request, username):
+
+    try:
+        user_found = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "Error occurred while searching for the user"}, status=400)
+
+    posts_by_user = Post.objects.filter(user=user_found)
+    json_response = JsonResponse([post.serialize() for post in posts_by_user], safe=False)
+
+    return json_response
