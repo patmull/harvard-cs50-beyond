@@ -215,7 +215,7 @@ def posts_for_user(request, username):
     except User.DoesNotExist:
         return JsonResponse({"error": "Error occurred while searching for the user"}, status=400)
 
-    posts_by_user = Post.objects.filter(user=user_found)
+    posts_by_user = Post.objects.filter(user=user_found).order_by('created_at').reverse()
     json_response = JsonResponse([post.serialize() for post in posts_by_user], safe=False)
 
     return json_response
