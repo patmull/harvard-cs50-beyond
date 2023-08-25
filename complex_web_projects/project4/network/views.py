@@ -200,8 +200,9 @@ def comments_for_post(request, post_id):
     if request.method == 'GET':
 
         post_found = Post.objects.filter(id=post_id)
-        # TODO: This does not work. ValueError: The QuerySet value for an exact lookup must be limited to one result using slicing.
-        comments_found = Comment.objects.filter(post=post_found).all()
+        # TODO: This does not work. ValueError:
+        # The QuerySet value for an exact lookup must be limited to one result using slicing.
+        comments_found = Comment.objects.filter(post__in=post_found)
 
         json_response = JsonResponse([comment.serialize() for comment in comments_found], safe=False)
 
