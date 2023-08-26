@@ -95,9 +95,11 @@ function click_handler(event, csrf_token) {
         console.log("like-button");
 
         let like_post_id = event.target.form.post_id.value;
-        // TODO:
+        // TODO: Append the dislike form
+        let dislike = event.target.form.dislike.value;
         const like_data = JSON.stringify({
-            'post_id': like_post_id
+            'post_id': like_post_id,
+            'dislike': dislike
         });
 
         console.log("like_data");

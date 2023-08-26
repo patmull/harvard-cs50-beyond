@@ -228,12 +228,17 @@ def like_post(request):
     post_data = json.loads(request_body)
     if request.method == "POST":
         post_id = post_data["post_id"]
+        dislike = post_data['dislike']
         post_found = Post.objects.get(id=post_id)
 
         user = request.user
 
         post = Like(post=post_found, user=user)
-        post.save()
+
+        if dislike is False:
+            post.save()
+        else:
+            post.delete()
 
         return JsonResponse({
             "message": "Like saved"
