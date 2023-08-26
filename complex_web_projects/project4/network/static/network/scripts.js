@@ -27,8 +27,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function click_handler(event, csrf_token) {
 
-    event.preventDefault();
-
     // KEEP HERE!
     console.log("event.target");
     console.log(event.target);
@@ -36,12 +34,11 @@ function click_handler(event, csrf_token) {
 
     if(event.target.className === 'user-name-link' || event.target.parentNode.class === 'user-name-link')
     {
+        event.preventDefault();
         console.log('href:');
         console.log(event.target.parentNode.innerText);
 
-        const user_name = event.target.parentNode.innerText;
-
-        load_posts(false, user_name);
+        load_posts(false, event);
     }
 
     if(event.target.form !== null && event.target.form !== undefined)
@@ -83,15 +80,46 @@ function click_handler(event, csrf_token) {
             .then(response => response.json())
             .then(result => {
                 console.log(result);
-
-                load_posts();
-
+                load_posts(false);
             })
             .catch(
                 error => {
                     console.error(error);
                 }
             )
+    }
+
+    if(event.target.className.includes('like-button'))
+    {
+        event.preventDefault();
+        console.log("like-button");
+
+        let like_post_id = event.target.form.post_id.value;
+        // TODO:
+        const like_data = JSON.stringify({
+            'post_id': like_post_id
+        });
+
+        console.log("like_data");
+        console.log(like_data);
+
+        fetch('/like-post', {
+            method: 'POST',
+            body: like_data
+        })
+            .then(response => {
+                if(response.status === 201) {
+                    response.json()
+                        .then(result => {
+
+                            console.log("Loading posts...");
+                            load_posts(true);
+
+                        });
+                } else {
+                    console.error("Failed to get successful status from the API request");
+                }
+        })
     }
 }
 
@@ -117,7 +145,7 @@ function new_post(event, csrf_token) {
                     .then(result => {
 
                         console.log("Loading posts...");
-                        load_posts();
+                        load_posts(true);
 
                     });
             } else {
@@ -157,9 +185,8 @@ function follow_unfollow(event, csrf_token, follow) {
             if(response.status === 201) {
                 response.json()
                     .then(result => {
-
                         console.log("Loading posts...");
-                        load_posts();
+                        load_posts(true);
                     });
             } else {
                 console.error("Failed to get successful status from the API request");
@@ -171,13 +198,20 @@ function isEmpty(str) {
     return (!str || str.length === 0 );
 }
 
-function load_posts(all=false, user_name) {
+function load_posts(all=true, event=null) {
+
+    let user_name;
+    if(event !== null)
+    {
+        user_name = event.target.parentNode.innerText;
+    }
 
     let loaded_posts_promise;
     if(all === false)
     {
         loaded_posts_promise = fetch_posts_api(all, user_name);
-    } else {
+    } else
+    {
         loaded_posts_promise = fetch_posts_api(all);
     }
 
@@ -200,7 +234,30 @@ function load_posts(all=false, user_name) {
         }
     }
 
+    let num_of_follows;
+
     loaded_posts_promise.then(loaded_posts => {
+
+        console.log("loaded_posts:");
+        console.log(loaded_posts);
+
+        // NOTICE: This canẗ be defined in the if block, otherwise it is undefined !!!!
+        num_of_follows = loaded_posts.num_of_followers;
+
+        if(all === false)
+        {
+            loaded_posts = loaded_posts.user_posts;
+
+            console.log("loaded_posts.num_of_followers:");
+            console.log("HERE"); // This outputs: HERE
+        } else {
+            num_of_follows = null;
+        }
+        console.log("loaded_posts:");
+        console.log(loaded_posts);
+
+        console.log("num_of_followers");
+        console.log(num_of_follows); // This outputs: undefined
 
         function append_post(loaded_post) {
             // const logged_user_id = parseInt({{ request.user.id }})
@@ -299,6 +356,14 @@ function load_posts(all=false, user_name) {
                         post_div.appendChild(post_date);
                         post_div.appendChild(post_text);
 
+                        const like_form = create_like_form(loaded_post.id);
+                        post_div.appendChild(like_form);
+
+                        const num_of_likes_section = document.createElement('div');
+                        num_of_likes_section.innerText = "Likes: " + loaded_post.num_of_likes;
+
+                        post_div.appendChild(num_of_likes_section);
+
                         const comment_section = document.createElement('div');
                         comment_section.className = 'comment-section';
                         comment_section.style.display = 'block';
@@ -364,12 +429,31 @@ function load_posts(all=false, user_name) {
         if(loaded_posts.length > 0)
         {
             const posts_section_headline = document.createElement('h3');
-            posts_section_headline.innerText = "What's new...";
-            const posts_section_headline_div = document.createElement('div');
-            posts_section_headline_div.className = 'container';
 
-            posts_section_headline_div.appendChild(posts_section_headline);
-            posts_section_selector.appendChild(posts_section_headline_div);
+            let num_of_followers_section;
+            if(all === true)
+            {
+                posts_section_headline.innerText = "What's new...";
+            } else {
+                posts_section_headline.innerText = user_name;
+                num_of_followers_section = document.createElement('div');
+                num_of_followers_section.innerText = `Num of follows: ${num_of_follows}`;
+            }
+
+            const posts_section_heading_div = document.createElement('div');
+            posts_section_heading_div.className = 'container';
+
+            posts_section_heading_div.appendChild(posts_section_headline);
+
+            if (all === false)
+            {
+                if(num_of_followers_section !== undefined)
+                {
+                    posts_section_heading_div.appendChild(num_of_followers_section);
+                }
+            }
+
+            posts_section_selector.appendChild(posts_section_heading_div);
 
             const posts_section_list = document.createElement('div');
             posts_section_list.id = 'posts-list';
@@ -380,7 +464,7 @@ function load_posts(all=false, user_name) {
             console.log("Loaded e-mails found");
             loaded_posts.forEach(append_post);
         } else {
-            console.error("No e-mails loaded from API.");
+            console.error("No posts loaded from API.");
         }
     }).catch(error => {
         console.error("An error occurred: ", error);
@@ -429,7 +513,7 @@ function get_following_users()
     )
 }
 
-function fetch_posts_api(all=false, user_name=null)
+function fetch_posts_api(all=true, user_name=null)
 {
     let link;
     if(all === true)
@@ -437,7 +521,13 @@ function fetch_posts_api(all=false, user_name=null)
         link = '/all-posts';
     } else {
         if (user_name !== null)
+        {
             link = `/user-posts/${user_name}`;
+        }
+        else
+        {
+            link = '/all-posts';
+        }
     }
 
     return fetch(link, {method: 'GET'})
@@ -532,4 +622,27 @@ function create_comment_form(loaded_post)
     new_comment_form.style.display = "none";
 
     return new_comment_form;
+}
+
+function create_like_form(post_id)
+{
+    const like_button = document.createElement('input');
+    like_button.innerText = 'Like';
+    like_button.className = 'like-button';
+    like_button.className += " " + "btn btn-primary";
+    like_button.type = 'submit';
+
+    const like_form = document.createElement('form');
+    like_form.method = 'POST';
+    like_form.action = '/like-post';
+    like_form.className = 'like-form';
+    like_form.appendChild(like_button);
+
+    const input_hidden_post_id = document.createElement('input');
+    input_hidden_post_id.name = 'post_id';
+    input_hidden_post_id.value = post_id;
+    input_hidden_post_id.type = 'hidden';
+    like_form.appendChild(input_hidden_post_id);
+
+    return like_form;
 }

@@ -10,7 +10,7 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 
 from .controllers import follow_unfollow_data
-from .models import User, Post, Follow, Comment
+from .models import User, Post, Follow, Comment, Like
 
 
 def index(request):
@@ -21,7 +21,6 @@ def index(request):
 
 @csrf_exempt
 def all_posts(request):
-
     if request.method == "GET":
         try:
             all_posts = Post.objects.all()
@@ -107,12 +106,10 @@ def register(request):
 @csrf_exempt
 @login_required
 def new_post(request):
-
     print("request:")
     print(request)
 
     if request.method == "POST":
-
         post_data = json.loads(request.body)
         new_post_text = post_data.get('post_text')
         new_post_multimedia_link = post_data.get('multimedia_link')
@@ -130,7 +127,6 @@ def new_post(request):
 @csrf_exempt
 @login_required()
 def follow(request):
-
     user_logged = request.user
     follow_user_id = follow_unfollow_data(request)
 
@@ -139,7 +135,6 @@ def follow(request):
     existing_follow = Follow.objects.filter(user_from=user_logged, user_to=user_to_follow)
 
     if not existing_follow.exists():
-
         new_follow = Follow(user_from=user_logged, user_to=user_to_follow)
         new_follow.save()
 
@@ -163,7 +158,6 @@ def unfollow(request):
 @csrf_exempt
 @login_required()
 def new_comment(request):
-
     if request.method == 'PUT':
         request_body = request.body
         comment_data = json.loads(request_body)
@@ -189,7 +183,7 @@ def new_comment(request):
             else:
                 return JsonResponse({"message": "Comment input text not found."}, status=400)
         else:
-            return JsonResponse({"message": "Post id input not found."}, status=400)
+            return JsonResponse({"error": "Post id input not found."}, status=400)
 
     else:
         return JsonResponse({"error": "Method not supported"}, status=400)
@@ -197,7 +191,6 @@ def new_comment(request):
 
 def comments_for_post(request, post_id):
     if request.method == 'GET':
-
         post_found = Post.objects.filter(id=post_id)
         # TODO: This does not work. ValueError:
         # The QuerySet value for an exact lookup must be limited to one result using slicing.
@@ -209,13 +202,39 @@ def comments_for_post(request, post_id):
 
 
 def posts_for_user(request, username):
-
     try:
         user_found = User.objects.get(username=username)
     except User.DoesNotExist:
         return JsonResponse({"error": "Error occurred while searching for the user"}, status=400)
 
     posts_by_user = Post.objects.filter(user=user_found).order_by('created_at').reverse()
-    json_response = JsonResponse([post.serialize() for post in posts_by_user], safe=False)
+    json_dict = {}
+    json_dict['user_posts'] = [post.serialize() for post in posts_by_user]
+
+    num_of_followers = Follow.objects.filter(user_to=user_found).count()
+
+    json_dict['num_of_followers'] = num_of_followers
+
+    json_response = JsonResponse(json_dict)
 
     return json_response
+
+
+@csrf_exempt
+@login_required
+def like_post(request):
+
+    request_body = request.body
+    post_data = json.loads(request_body)
+    if request.method == "POST":
+        post_id = post_data["post_id"]
+        post_found = Post.objects.get(id=post_id)
+
+        user = request.user
+
+        post = Like(post=post_found, user=user)
+        post.save()
+
+        return JsonResponse({
+            "message": "Like saved"
+        }, status=201)
