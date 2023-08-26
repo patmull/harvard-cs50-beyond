@@ -39,8 +39,10 @@ class Post(models.Model):
         post_likes = Like.objects.filter(post=self).select_related('user')
         post_likes_by_users = [like.user for like in post_likes]
 
-        num_of_likes = Like.objects.filter(post=self).count()
+        likes_for_this_post = Like.objects.filter(post_id=self.id)
+        num_of_likes = likes_for_this_post.count()
 
+        """
         return {
             "id": self.id,
             "text": self.text,
@@ -49,6 +51,17 @@ class Post(models.Model):
             "user_name": self.user.username,
             "user_id": self.user.id,
             "post_liked_by_users": post_likes_by_users,
+            "num_of_likes": num_of_likes
+        }
+        """
+
+        return {
+            "id": self.id,
+            "text": self.text,
+            "multimedia_link": self.multimedia_link,
+            "created_at": self.created_at,
+            "user_name": self.user.username,
+            "user_id": self.user.id,
             "num_of_likes": num_of_likes
         }
 
