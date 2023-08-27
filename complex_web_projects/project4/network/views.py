@@ -281,7 +281,7 @@ def edit_post(request):
         request_body = request.body
         post_data = json.loads(request_body)
         post_id = post_data["post_id"]
-        new_post_text = post_data["post_text"]
+        new_post_text = post_data["edited_post_text"]
 
         post_found = Post.objects.get(id=post_id)
         post_found.text = new_post_text

@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function click_handler(event, csrf_token) {
 
+    event.preventDefault();
+
     // KEEP HERE!
     console.log("event.target");
     console.log(event.target);
@@ -57,7 +59,7 @@ function click_handler(event, csrf_token) {
             like_dislike(event, csrf_token, false);
         }
 
-        if(event.target.form.className.includes('display-edit-post-form'))
+        if(event.target.className.includes('edit-button'))
         {
             event.preventDefault();
 
@@ -88,6 +90,7 @@ function click_handler(event, csrf_token) {
             new_textarea.className = 'form-control';
             new_textarea.rows = 3;
             new_textarea.value = current_paragraph_content;
+            new_textarea.name = 'edited_post_text';
 
             const save_edits_form = document.createElement('form');
             save_edits_form.className ='save-edits-form';
@@ -109,7 +112,7 @@ function click_handler(event, csrf_token) {
 
         }
 
-        if(event.target.form.className === 'save-edits-form')
+        if(event.target.className === 'save-edits-button')
         {
             event.preventDefault();
             console.log("event.target:");
@@ -124,7 +127,7 @@ function click_handler(event, csrf_token) {
                 },
                 body: JSON.stringify({
                     'post_id': event.target.form.post_id.value,
-                    'post_text': event.target.form.post_text.value
+                    'edited_post_text': event.target.form.edited_post_text.value
                 })
             })
               .then(response => {
@@ -406,10 +409,10 @@ function load_posts(all=true, event=null) {
             post_date.innerText = loaded_post.created_at;
 
             if (logged_in_user_name !== null) {
-                include_like_dislike_form = true;
 
                 if (isEmpty(logged_in_user_name)) {
                     include_follow_unfollow_form = false;
+                    include_like_dislike_form = false;
                     user_logged = false;
                 } else {
                     console.log("User names:");
@@ -419,6 +422,7 @@ function load_posts(all=true, event=null) {
                     if (loaded_post.user_name === logged_in_user_name) {
                         console.log("User names are equal.");
                         include_follow_unfollow_form = false;
+                        include_like_dislike_form = false;
                         console.log("No user logged in.");
                         user_logged = true;
 
@@ -466,10 +470,14 @@ function load_posts(all=true, event=null) {
                         post_div.appendChild(post_date);
 
                         const edit_button = document.createElement('input');
-                        edit_button.className = 'edit-button';
-                        edit_button.value = 'Edit';
-                        edit_button.type = 'submit';
-                        edit_button.className += " " + "btn btn-primary mt-3 mb-3";
+
+                        if(logged_in_user_name === loaded_post.user_name)
+                        {
+                            edit_button.className = 'edit-button';
+                            edit_button.value = 'Edit';
+                            edit_button.type = 'submit';
+                            edit_button.className += " " + "btn btn-primary mt-3 mb-3";
+                        }
 
                         const input_hidden_post_id = create_hidden_element(loaded_post.id);
                         const input_hidden_post_text = create_hidden_element(loaded_post.text, 'post_text');
@@ -481,7 +489,15 @@ function load_posts(all=true, event=null) {
 
                         edit_post_form.appendChild(input_hidden_post_id);
                         edit_post_form.appendChild(input_hidden_post_text);
-                        edit_post_form.appendChild(edit_button);
+
+                        console.log(`logged_in_user_name: ${logged_in_user_name}`);
+                        console.log(`loaded_post.user_name: ${loaded_post.user_name}`);
+
+                        if(logged_in_user_name === loaded_post.user_name)
+                        {
+                            edit_post_form.appendChild(edit_button);
+                        }
+
                         post_div.appendChild(edit_post_form);
                         post_div.appendChild(post_detail_div);
 
