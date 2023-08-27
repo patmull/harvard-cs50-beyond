@@ -204,6 +204,39 @@ function follow_unfollow(event, csrf_token, follow) {
         })
 }
 
+function like_dislike(event, csrf_token, dislike) {
+    event.preventDefault();
+
+    const post_id = event.target.form.post_id.value;
+    const like_dislike = event.target.form.like_dislike.value;
+
+    console.log(`Dislike: ${dislike}, user_id: ${post_id}`);
+
+    const post_data = JSON.stringify({
+        'post_id': post_id,
+        'like_dislike': like_dislike
+    });
+
+    // Fetch
+    fetch('/like-post', {
+        method: 'POST',
+        body: post_data,
+        headers: {'X-CSRFToken': csrf_token},
+        mode: 'same-origin' // Do not send CSRF token to another domain.
+    })
+        .then(response => {
+            if(response.status === 201) {
+                response.json()
+                    .then(result => {
+                        console.log("Loading posts...");
+                        load_posts(true);
+                    });
+            } else {
+                console.error("Failed to get successful status from the API request");
+            }
+        })
+}
+
 function isEmpty(str) {
     return (!str || str.length === 0 );
 }
@@ -295,7 +328,6 @@ function load_posts(all=true, event=null) {
             let user_logged = false;
 
             let already_following = false;
-            let already_liked = false;
 
             const post_text = document.createElement('p');
             post_text.innerText = loaded_post.text;
@@ -304,6 +336,8 @@ function load_posts(all=true, event=null) {
             post_date.innerText = loaded_post.created_at;
 
             if (logged_in_user_name !== null) {
+                include_like_dislike_form = true;
+
                 if (isEmpty(logged_in_user_name)) {
                     include_follow_unfollow_form = false;
                     user_logged = false;
@@ -326,6 +360,7 @@ function load_posts(all=true, event=null) {
                 }
             } else {
                 include_follow_unfollow_form = false;
+                include_like_dislike_form = false;
                 console.error("Was unable to get id of an logged in user.");
                 user_logged = false;
             }
@@ -366,31 +401,25 @@ function load_posts(all=true, event=null) {
                         } else {
                             liked_posts
                                 .then(liked_posts => {
+                                    console.log(`Liked posts includes this post id: ${liked_posts.includes(loaded_post.id)}`);
+                                    let like_dislike_form;
                                     if (liked_posts.includes(loaded_post.id)) {
-                                        console.log("User already liked.");
+                                        console.log("Post already liked.");
                                         console.log("Post id:");
                                         console.log(loaded_post.id);
                                         console.log("Logged user is liked:");
                                         console.log(liked_posts);
-                                        already_liked = true;
-                                        include_follow_unfollow_form = true;
-                                    }
-                                    console.log("Following:");
-                                    console.log(following);
-
-                                    let like_dislike_form;
-                                    if (include_like_dislike_form === true) {
-                                        console.log(`include_like_dislike_form_form: ${include_like_dislike_form}`);
-                                        if (already_liked === true) {
-                                            like_dislike_form = create_like_dislike_form(loaded_post.id, "Dislike");
-                                        } else {
-                                            like_dislike_form = create_like_dislike_form(loaded_post.id, "Like");
-                                        }
+                                        like_dislike_form = create_like_dislike_form(loaded_post.id, "Dislike");
+                                        post_div.appendChild(like_dislike_form);
+                                    } else {
+                                        like_dislike_form = create_like_dislike_form(loaded_post.id, "Like");
                                         post_div.appendChild(like_dislike_form);
                                     }
 
-                                    const like_form = create_like_dislike_form(loaded_post.id);
-                                    post_div.appendChild(like_form);
+                                    console.log("Following:");
+                                    console.log(following);
+
+                                    console.log(`include_like_dislike_form_form: ${include_like_dislike_form}`);
 
                                     const num_of_likes_section = document.createElement('div');
                                     num_of_likes_section.innerText = "Likes: " + loaded_post.num_of_likes;
@@ -705,7 +734,7 @@ function create_like_dislike_form(post_id, submit_text)
     }
 
     const like_button = document.createElement('input');
-    like_button.value = 'Like';
+    like_button.value = submit_text;
     like_button.className = 'like-button';
     like_button.className += " " + "btn btn-primary";
     like_button.type = 'submit';
@@ -716,7 +745,9 @@ function create_like_dislike_form(post_id, submit_text)
     input_hidden_post_id.name = 'post_id';
     input_hidden_post_id.value = post_id;
     input_hidden_post_id.type = 'hidden';
+
     like_form.appendChild(input_hidden_post_id);
+    like_form.appendChild(like_dislike_input);
 
     return like_form;
 }

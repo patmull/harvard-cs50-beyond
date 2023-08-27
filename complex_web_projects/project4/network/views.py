@@ -182,23 +182,26 @@ def like_post(request):
         post_id = post_data["post_id"]
         dislike = post_data['like_dislike']
 
+        post_found = Post.objects.get(id=post_id)
+        user = request.user
+
         if dislike == "like":
-            dislike_bool = True
-        elif dislike == "dislike":
             dislike_bool = False
+            like = Like(post=post_found, user=user)
+        elif dislike == "dislike":
+            try:
+                like = Like.objects.get(post=post_found, user=user)
+            except Like.DoesNotExist:
+                raise ModuleNotFoundError("LIke with this post and user not found.")
+            finally:
+                dislike_bool = True
         else:
             raise ValueError("UNexpected value. Only 'like' or 'dislike' is allowed here.")
 
-        post_found = Post.objects.get(id=post_id)
-
-        user = request.user
-
-        post = Like(post=post_found, user=user)
-
         if dislike_bool is False:
-            post.save()
+            like.save()
         else:
-            post.delete()
+            like.delete()
 
         return JsonResponse({
             "message": "Like saved"
