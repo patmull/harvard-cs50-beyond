@@ -51,6 +51,21 @@ def following(request):
         return JsonResponse({"error": "Other method not supported."}, status=400)
 
 
+@csrf_exempt
+@login_required
+def liked_posts(request):
+    if request.method == "GET":
+        logged_user = request.user
+
+        current_user = User.objects.filter(id=logged_user.id).first()
+        liked_posts = current_user.serialize_liked_posts()
+        json_response = JsonResponse(liked_posts, safe=False)
+
+        return json_response
+    else:
+        return JsonResponse({"error": "Other method not supported."}, status=400)
+
+
 def login_view(request):
     if request.method == "POST":
 
@@ -141,6 +156,8 @@ def follow(request):
     return JsonResponse({"message": "Follower was added successfully to the user"}, status=201)
 
 
+@csrf_exempt
+@login_required()
 def unfollow(request):
     user_logged = request.user
     unfollow_user_id = follow_unfollow_data(request)
@@ -153,6 +170,39 @@ def unfollow(request):
         raise ModuleNotFoundError("No user with this id found.")
 
     return JsonResponse({"message": "Unfollow was added successfully to the user"}, status=201)
+
+
+@csrf_exempt
+@login_required
+def like_post(request):
+
+    request_body = request.body
+    post_data = json.loads(request_body)
+    if request.method == "POST":
+        post_id = post_data["post_id"]
+        dislike = post_data['like_dislike']
+
+        if dislike == "like":
+            dislike_bool = True
+        elif dislike == "dislike":
+            dislike_bool = False
+        else:
+            raise ValueError("UNexpected value. Only 'like' or 'dislike' is allowed here.")
+
+        post_found = Post.objects.get(id=post_id)
+
+        user = request.user
+
+        post = Like(post=post_found, user=user)
+
+        if dislike_bool is False:
+            post.save()
+        else:
+            post.delete()
+
+        return JsonResponse({
+            "message": "Like saved"
+        }, status=201)
 
 
 @csrf_exempt
@@ -218,28 +268,3 @@ def posts_for_user(request, username):
     json_response = JsonResponse(json_dict)
 
     return json_response
-
-
-@csrf_exempt
-@login_required
-def like_post(request):
-
-    request_body = request.body
-    post_data = json.loads(request_body)
-    if request.method == "POST":
-        post_id = post_data["post_id"]
-        dislike = post_data['dislike']
-        post_found = Post.objects.get(id=post_id)
-
-        user = request.user
-
-        post = Like(post=post_found, user=user)
-
-        if dislike is False:
-            post.save()
-        else:
-            post.delete()
-
-        return JsonResponse({
-            "message": "Like saved"
-        }, status=201)

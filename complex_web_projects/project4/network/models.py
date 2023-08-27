@@ -15,6 +15,15 @@ class User(AbstractUser):
             'following': following
         }
 
+    def serialize_liked_posts(self):
+        liked_posts_by_user = Like.objects.filter(user_id=self.id).values_list('post_id', flat=True)
+
+        return {
+            # NOTICE: The list conversion needs to be there, otherwise you will get the:
+            # TypeError: Object of type QuerySet is not JSON serializable
+            'liked_posts_ids': list(liked_posts_by_user)
+        }
+
 
 class Follow(models.Model):
     user_from = models.ForeignKey(User, on_delete=models.RESTRICT, related_name='follow_from')
@@ -67,8 +76,8 @@ class Post(models.Model):
 
 
 class Like(models.Model):
-    post = models.ForeignKey(Post, null=True, on_delete=models.SET_NULL, related_name='post_like')
-    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='user_like')
+    post = models.ForeignKey(Post, null=True, on_delete=models.SET_NULL, related_name='liked_post')
+    user = models.ForeignKey(User, null=True, on_delete=models.SET_NULL, related_name='liked_by_user')
 
 
 class Comment(models.Model):

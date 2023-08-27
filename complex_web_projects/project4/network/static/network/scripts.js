@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if(new_post_form !== null)
     {
-        new_post_form.addEventListener('submit', (event) => new_post(event));
+        new_post_form.addEventListener('submit', (event) => new_post(event, csrf_token));
     }
 
     document.querySelector('#posts')
@@ -49,6 +49,13 @@ function click_handler(event, csrf_token) {
         } else if(event.target.form.className === 'unfollow-form') {
             follow_unfollow(event, csrf_token, false);
         }
+
+        if(event.target.form.className === 'new-like-form')
+        {
+            like_dislike(event, csrf_token, true);
+        } else if(event.target.form.className === 'dislike-form') {
+            like_dislike(event, csrf_token, false);
+        }
     }
 
     if(event.target.className === 'new-comment-button')
@@ -66,7 +73,6 @@ function click_handler(event, csrf_token) {
     {
         event.preventDefault();
 
-        // TODO:
         const comment_data = {};
         comment_data['post_id'] = event.target.form.post_id.value;
         comment_data['comment_text'] = event.target.form.new_comment_text.value;
@@ -89,6 +95,8 @@ function click_handler(event, csrf_token) {
             )
     }
 
+
+    /*
     if(event.target.className.includes('like-button'))
     {
         event.preventDefault();
@@ -122,7 +130,7 @@ function click_handler(event, csrf_token) {
                     console.error("Failed to get successful status from the API request");
                 }
         })
-    }
+    }*/
 }
 
 function new_post(event, csrf_token) {
@@ -222,7 +230,7 @@ function load_posts(all=true, event=null) {
     // Clearing the previous content to fully load posts again.
     posts_section_selector.innerText = '';
 
-    let following;
+    let following, liked_posts;
 
     // Getting from Django
     const logged_user_name = document.getElementById('user_name');
@@ -233,6 +241,7 @@ function load_posts(all=true, event=null) {
         if(!isEmpty(logged_in_user_name))
         {
             following = get_following_users();
+            liked_posts = get_liked_posts();
         }
     }
 
@@ -282,9 +291,11 @@ function load_posts(all=true, event=null) {
             post_div.appendChild(user_name_link);
 
             let include_follow_unfollow_form = false;
+            let include_like_dislike_form = false;
             let user_logged = false;
 
             let already_following = false;
+            let already_liked = false;
 
             const post_text = document.createElement('p');
             post_text.innerText = loaded_post.text;
@@ -292,10 +303,8 @@ function load_posts(all=true, event=null) {
             post_date.className = 'datetime';
             post_date.innerText = loaded_post.created_at;
 
-            if(logged_in_user_name !== null)
-            {
-                if(isEmpty(logged_in_user_name))
-                {
+            if (logged_in_user_name !== null) {
+                if (isEmpty(logged_in_user_name)) {
                     include_follow_unfollow_form = false;
                     user_logged = false;
                 } else {
@@ -303,8 +312,7 @@ function load_posts(all=true, event=null) {
                     console.log(loaded_post.user_name);
                     console.log(logged_in_user_name);
 
-                    if(loaded_post.user_name === logged_in_user_name)
-                    {
+                    if (loaded_post.user_name === logged_in_user_name) {
                         console.log("User names are equal.");
                         include_follow_unfollow_form = false;
                         console.log("No user logged in.");
@@ -322,15 +330,12 @@ function load_posts(all=true, event=null) {
                 user_logged = false;
             }
 
-            if(following === null || following === undefined)
-            {
+            if (following === null || following === undefined) {
                 console.log("No followers found.");
-            } else
-            {
+            } else {
                 following
                     .then(following => {
-                        if(following.includes(loaded_post.user_name))
-                        {
+                        if (following.includes(loaded_post.user_name)) {
                             console.log("User already followed.");
                             console.log("Post user:");
                             console.log(loaded_post.user_name);
@@ -343,11 +348,9 @@ function load_posts(all=true, event=null) {
                         console.log(following);
 
                         let follow_form;
-                        if(include_follow_unfollow_form === true)
-                        {
+                        if (include_follow_unfollow_form === true) {
                             console.log(`include_follow_unfollow_form: ${include_follow_unfollow_form}`);
-                            if(already_following === true)
-                            {
+                            if (already_following === true) {
                                 follow_form = create_follow_unfollow_form("Unfollow", loaded_post.user_id);
                             } else {
                                 follow_form = create_follow_unfollow_form("Follow", loaded_post.user_id);
@@ -358,74 +361,104 @@ function load_posts(all=true, event=null) {
                         post_div.appendChild(post_date);
                         post_div.appendChild(post_text);
 
-                        const like_form = create_like_form(loaded_post.id);
-                        post_div.appendChild(like_form);
+                        if (liked_posts === null || liked_posts === undefined) {
+                            console.log("No followers found.");
+                        } else {
+                            liked_posts
+                                .then(liked_posts => {
+                                    if (liked_posts.includes(loaded_post.id)) {
+                                        console.log("User already liked.");
+                                        console.log("Post id:");
+                                        console.log(loaded_post.id);
+                                        console.log("Logged user is liked:");
+                                        console.log(liked_posts);
+                                        already_liked = true;
+                                        include_follow_unfollow_form = true;
+                                    }
+                                    console.log("Following:");
+                                    console.log(following);
 
-                        const num_of_likes_section = document.createElement('div');
-                        num_of_likes_section.innerText = "Likes: " + loaded_post.num_of_likes;
+                                    let like_dislike_form;
+                                    if (include_like_dislike_form === true) {
+                                        console.log(`include_like_dislike_form_form: ${include_like_dislike_form}`);
+                                        if (already_liked === true) {
+                                            like_dislike_form = create_like_dislike_form(loaded_post.id, "Dislike");
+                                        } else {
+                                            like_dislike_form = create_like_dislike_form(loaded_post.id, "Like");
+                                        }
+                                        post_div.appendChild(like_dislike_form);
+                                    }
 
-                        post_div.appendChild(num_of_likes_section);
+                                    const like_form = create_like_dislike_form(loaded_post.id);
+                                    post_div.appendChild(like_form);
 
-                        const comment_section = document.createElement('div');
-                        comment_section.className = 'comment-section';
-                        comment_section.style.display = 'block';
+                                    const num_of_likes_section = document.createElement('div');
+                                    num_of_likes_section.innerText = "Likes: " + loaded_post.num_of_likes;
 
-                        console.log("Loading comments...");
-                        const comments_promise = fetch_comments(loaded_post.id);
+                                    post_div.appendChild(num_of_likes_section);
 
-                        comments_promise
-                            .then(comments => {
+                                    const comment_section = document.createElement('div');
+                                    comment_section.className = 'comment-section';
+                                    comment_section.style.display = 'block';
 
-                            function append_comments(comment) {
+                                    console.log("Loading comments...");
+                                    const comments_promise = fetch_comments(loaded_post.id);
 
-                                const comment_div = document.createElement('div');
-                                comment_div.className = 'comment container';
-                                comment_div.className += " " + "mt-3 mb-3";
+                                    comments_promise
+                                        .then(comments => {
 
-                                console.log(`comment.datetime: ${comment.datetime}`);
+                                            function append_comments(comment) {
 
-                                const comment_datetime_div = document.createElement('div');
-                                comment_datetime_div.className = 'comment-datetime';
-                                comment_datetime_div.innerText = comment.datetime;
-                                comment_datetime_div.className += " " + "datetime";
+                                                const comment_div = document.createElement('div');
+                                                comment_div.className = 'comment container';
+                                                comment_div.className += " " + "mt-3 mb-3";
 
-                                const comment_user_name_div = document.createElement('div');
-                                comment_user_name_div.className = 'comment-username';
-                                comment_user_name_div.innerText = comment.user;
+                                                console.log(`comment.datetime: ${comment.datetime}`);
 
-                                const comment_text_div = document.createElement('div');
-                                comment_text_div.className = 'comment-text';
-                                comment_text_div.innerText = comment.text;
+                                                const comment_datetime_div = document.createElement('div');
+                                                comment_datetime_div.className = 'comment-datetime';
+                                                comment_datetime_div.innerText = comment.datetime;
+                                                comment_datetime_div.className += " " + "datetime";
 
-                                comment_div.append(comment_datetime_div, comment_user_name_div, comment_text_div);
+                                                const comment_user_name_div = document.createElement('div');
+                                                comment_user_name_div.className = 'comment-username';
+                                                comment_user_name_div.innerText = comment.user;
 
-                                comment_section.appendChild(comment_div);
-                            }
-                            comments.forEach(append_comments);
-                        })
+                                                const comment_text_div = document.createElement('div');
+                                                comment_text_div.className = 'comment-text';
+                                                comment_text_div.innerText = comment.text;
 
-                        post_div.appendChild(comment_section);
+                                                comment_div.append(comment_datetime_div, comment_user_name_div, comment_text_div);
 
-                        if(user_logged === true)
-                        {
-                            const comment_form = create_comment_form(loaded_post);
+                                                comment_section.appendChild(comment_div);
+                                            }
 
-                            const new_comment_button = document.createElement('button');
-                            new_comment_button.className = 'new-comment-button';
-                            new_comment_button.innerText = 'Comment';
+                                            comments.forEach(append_comments);
+                                        })
 
-                            post_div.appendChild(new_comment_button);
-                            post_div.appendChild(comment_form);
+                                    post_div.appendChild(comment_section);
+
+                                    if (user_logged === true) {
+                                        const comment_form = create_comment_form(loaded_post);
+
+                                        const new_comment_button = document.createElement('button');
+                                        new_comment_button.className = 'new-comment-button';
+                                        new_comment_button.innerText = 'Comment';
+
+                                        post_div.appendChild(new_comment_button);
+                                        post_div.appendChild(comment_form);
+                                    }
+                                })
                         }
+                        console.log("post_div");
+                        console.log(post_div);
+
+                        const posts_list = document.querySelector('#posts-list');
+                        posts_list.appendChild(post_div);
+
+                        posts_section_selector.appendChild(posts_list);
                     })
             }
-            console.log("post_div");
-            console.log(post_div);
-
-            const posts_list = document.querySelector('#posts-list');
-            posts_list.appendChild(post_div);
-
-            posts_section_selector.appendChild(posts_list);
         }
 
         if(loaded_posts.length > 0)
@@ -515,6 +548,18 @@ function get_following_users()
     )
 }
 
+function get_liked_posts()
+{
+    const load_liked_promise = fetch_liked();
+
+    return load_liked_promise.then(
+        loaded_liked_posts => {
+            return loaded_liked_posts.liked_posts_ids;
+        }
+    )
+
+}
+
 function fetch_posts_api(all=true, user_name=null)
 {
     let link;
@@ -548,6 +593,15 @@ function fetch_following()
         })
 }
 
+
+function fetch_liked()
+{
+    return fetch('/liked-posts', {method: 'GET'})
+        .then(response => response.json())
+        .then(data => {
+            return data;
+        })
+}
 
 function fetch_comments(post_id)
 {
@@ -626,18 +680,36 @@ function create_comment_form(loaded_post)
     return new_comment_form;
 }
 
-function create_like_form(post_id)
+function create_like_dislike_form(post_id, submit_text)
 {
-    const like_button = document.createElement('input');
-    like_button.innerText = 'Like';
-    like_button.className = 'like-button';
-    like_button.className += " " + "btn btn-primary";
-    like_button.type = 'submit';
 
     const like_form = document.createElement('form');
     like_form.method = 'POST';
     like_form.action = '/like-post';
-    like_form.className = 'like-form';
+
+    const like_dislike_input = document.createElement('input');
+    like_dislike_input.type = 'hidden';
+    like_dislike_input.name = 'like_dislike';
+
+    if(submit_text === "Like")
+    {
+        like_form.className = 'new-like-form';
+        like_dislike_input.value = 'like';
+    }
+    else if(submit_text === "Dislike")
+    {
+        like_form.className = 'dislike-form';
+        like_dislike_input.value = 'dislike';
+    } else {
+        console.error("Unexpected stat eof the submit_text variable.");
+    }
+
+    const like_button = document.createElement('input');
+    like_button.value = 'Like';
+    like_button.className = 'like-button';
+    like_button.className += " " + "btn btn-primary";
+    like_button.type = 'submit';
+
     like_form.appendChild(like_button);
 
     const input_hidden_post_id = document.createElement('input');
