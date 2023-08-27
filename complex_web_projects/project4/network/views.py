@@ -271,3 +271,24 @@ def posts_for_user(request, username):
     json_response = JsonResponse(json_dict)
 
     return json_response
+
+
+@csrf_exempt
+@login_required
+def edit_post(request):
+
+    if request.method == "PUT":
+        request_body = request.body
+        post_data = json.loads(request_body)
+        post_id = post_data["post_id"]
+        new_post_text = post_data["post_text"]
+
+        post_found = Post.objects.get(id=post_id)
+        post_found.text = new_post_text
+        post_found.save()
+
+        return JsonResponse({
+            "message": "Post edited successfully"
+        }, status=201)
+    else:
+        return JsonResponse({"error": "Method not supported"}, status=400)

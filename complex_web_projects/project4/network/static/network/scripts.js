@@ -56,6 +56,95 @@ function click_handler(event, csrf_token) {
         } else if(event.target.form.className === 'dislike-form') {
             like_dislike(event, csrf_token, false);
         }
+
+        if(event.target.form.className.includes('display-edit-post-form'))
+        {
+            event.preventDefault();
+
+            console.log("Edit button clicked!");
+            console.log("clicked target:");
+            console.log(event.target);
+
+            event.target.style.display = 'block';
+
+            const current_paragraph_content = event.target.form.post_text.value;
+
+            console.log(`current_paragraph_content: ${current_paragraph_content}`);
+            console.log(current_paragraph_content);
+
+            const post_detail_div = event.target.parentNode.parentNode
+                .querySelector('.post-text-wrapper');
+            console.log(`post_detail_div: ${post_detail_div}`);
+            console.log(post_detail_div);
+            // Remove all child nodes from the post_detail_div
+            while (post_detail_div.firstChild) {
+                if(post_detail_div !== null)
+                {
+                    post_detail_div.removeChild(post_detail_div.firstChild);
+                }
+            }
+
+            const new_textarea = document.createElement('textarea');
+            new_textarea.className = 'form-control';
+            new_textarea.rows = 3;
+            new_textarea.value = current_paragraph_content;
+
+            const save_edits_form = document.createElement('form');
+            save_edits_form.className ='save-edits-form';
+            save_edits_form.method = 'PUT';
+            save_edits_form.action = '/edit-post';
+
+            const post_edits_post_id = create_hidden_element(event.target.form.post_id.value);
+
+            const save_edits_button = document.createElement('input');
+            save_edits_button.className = 'save-edits-button';
+            save_edits_button.type ='submit';
+            save_edits_button.value = 'Save';
+
+            save_edits_form.appendChild(new_textarea);
+            save_edits_form.appendChild(post_edits_post_id);
+            save_edits_form.appendChild(save_edits_button);
+
+            post_detail_div.appendChild(save_edits_form)
+
+        }
+
+        if(event.target.form.className === 'save-edits-form')
+        {
+            event.preventDefault();
+            console.log("event.target:");
+            console.log(event.target);
+
+            // Fetch the /edit-post API with PUT method to update the post
+            fetch('/edit-post', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrf_token
+                },
+                body: JSON.stringify({
+                    'post_id': event.target.form.post_id.value,
+                    'post_text': event.target.form.post_text.value
+                })
+            })
+              .then(response => {
+                    if(response.status === 201) {
+                        response.json()
+                          .then(result => {
+
+                                console.log("Loading posts...");
+                                load_posts(true);
+
+                            });
+                    } else {
+                        console.error("Failed to get successful status from the API request");
+                    }
+                })
+              .catch(error => {
+                    console.error(error);
+                });
+
+        }
     }
 
     if(event.target.className === 'new-comment-button')
@@ -69,31 +158,6 @@ function click_handler(event, csrf_token) {
         event.target.nextSibling.style.display = 'block';
     }
 
-    if(event.target.className === 'send-comment-button')
-    {
-        event.preventDefault();
-
-        const comment_data = {};
-        comment_data['post_id'] = event.target.form.post_id.value;
-        comment_data['comment_text'] = event.target.form.new_comment_text.value;
-        console.log("comment_data");
-        console.log(comment_data);
-
-        fetch('/new-comment', {
-            method: 'PUT',
-            body: JSON.stringify(comment_data),
-        })
-            .then(response => response.json())
-            .then(result => {
-                console.log(result);
-                load_posts(false);
-            })
-            .catch(
-                error => {
-                    console.error(error);
-                }
-            )
-    }
 
 
     /*
@@ -331,6 +395,12 @@ function load_posts(all=true, event=null) {
 
             const post_text = document.createElement('p');
             post_text.innerText = loaded_post.text;
+            post_text.className = 'post-text';
+
+            const post_detail_div = document.createElement('div');
+            post_detail_div.className = 'post-text-wrapper';
+            post_detail_div.appendChild(post_text);
+
             const post_date = document.createElement('p');
             post_date.className = 'datetime';
             post_date.innerText = loaded_post.created_at;
@@ -394,7 +464,26 @@ function load_posts(all=true, event=null) {
 
                         }
                         post_div.appendChild(post_date);
-                        post_div.appendChild(post_text);
+
+                        const edit_button = document.createElement('input');
+                        edit_button.className = 'edit-button';
+                        edit_button.value = 'Edit';
+                        edit_button.type = 'submit';
+                        edit_button.className += " " + "btn btn-primary mt-3 mb-3";
+
+                        const input_hidden_post_id = create_hidden_element(loaded_post.id);
+                        const input_hidden_post_text = create_hidden_element(loaded_post.text, 'post_text');
+
+                        const edit_post_form = document.createElement('form');
+                        edit_post_form.method = 'GET';
+                        edit_post_form.action = '/';
+                        edit_post_form.className = 'display-edit-post-form';
+
+                        edit_post_form.appendChild(input_hidden_post_id);
+                        edit_post_form.appendChild(input_hidden_post_text);
+                        edit_post_form.appendChild(edit_button);
+                        post_div.appendChild(edit_post_form);
+                        post_div.appendChild(post_detail_div);
 
                         if (liked_posts === null || liked_posts === undefined) {
                             console.log("No followers found.");
@@ -475,6 +564,7 @@ function load_posts(all=true, event=null) {
                                         new_comment_button.innerText = 'Comment';
 
                                         post_div.appendChild(new_comment_button);
+
                                         post_div.appendChild(comment_form);
                                     }
                                 })
@@ -692,10 +782,7 @@ function create_comment_form(loaded_post)
     comment_text.rows = 3;
     comment_text.name = 'new_comment_text';
 
-    const new_comment_form_input = document.createElement('input');
-    new_comment_form_input.type = 'hidden';
-    new_comment_form_input.name = 'post_id';
-    new_comment_form_input.value = loaded_post.id;
+    const new_comment_form_input = create_hidden_element(loaded_post.id);
 
     const submit_comment_button = document.createElement('input');
     submit_comment_button.type = 'submit';
@@ -741,13 +828,21 @@ function create_like_dislike_form(post_id, submit_text)
 
     like_form.appendChild(like_button);
 
-    const input_hidden_post_id = document.createElement('input');
-    input_hidden_post_id.name = 'post_id';
-    input_hidden_post_id.value = post_id;
-    input_hidden_post_id.type = 'hidden';
+    const input_hidden_post_id = create_hidden_element(post_id);
 
     like_form.appendChild(input_hidden_post_id);
     like_form.appendChild(like_dislike_input);
 
     return like_form;
+}
+
+
+function create_hidden_element(value, name='post_id')
+{
+    const post_edits_post_id = document.createElement('input');
+    post_edits_post_id.type = 'hidden';
+    post_edits_post_id.name = name;
+    post_edits_post_id.value = value;
+
+    return post_edits_post_id;
 }
